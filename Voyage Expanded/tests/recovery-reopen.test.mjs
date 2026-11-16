@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {exampleState} from './fixture.mjs';
-await import('../storage-core.js');await import('../inventory-draft.js');
+await import('../inventory-core.js');await import('../inventory-draft.js');
 const C=globalThis.VoyageStorageCore,D=globalThis.VoyageInventoryDraft,who='Example Adventurer',copy=x=>structuredClone(x);
-const panelSource=fs.readFileSync(new URL('../storage-panel.js',import.meta.url),'utf8');
+const panelSource=fs.readFileSync(new URL('../inventory-panel.js',import.meta.url),'utf8');
 const marker='host.mountLaunchers({ open, close, isOpen: () => !!panel, hasChanges, isBusy: () => busy || closeConfirming });';
 assert.equal(panelSource.split(marker).length,2);
 // Expose existing panel closures in this test VM, without adding production hooks
@@ -54,7 +54,7 @@ async function harness({equipped=false,recovery=false,applied=true}={}){
     saveInventory:()=>{throw Error('No extra inventory save is allowed');},equip:()=>{throw Error('No extra equip is allowed');},unequip:()=>{throw Error('No extra unequip is allowed');}
   };
   const scope=vm.createContext({structuredClone,console,window:{addEventListener(){}},VoyageStorageCore:C,VoyageInventoryDraft:D});
-  vm.runInContext(instrumented,scope,{filename:'storage-panel.js'});scope.VoyageStoragePanel.install(host);
+  vm.runInContext(instrumented,scope,{filename:'inventory-panel.js'});scope.VoyageStoragePanel.install(host);
   h.panel.seed(h.live,h.record,h.context(h.live));
   h.identity=identity;
   return h;

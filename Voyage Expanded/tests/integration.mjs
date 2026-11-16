@@ -1,5 +1,5 @@
 import { exampleState } from './fixture.mjs';
-import '../storage-core.js';
+import '../inventory-core.js';
 const root = document.querySelector('#root');
 const state = exampleState(); state.npcs = {};
 const areaContainersMode = new URLSearchParams(location.search).has('areaContainers');

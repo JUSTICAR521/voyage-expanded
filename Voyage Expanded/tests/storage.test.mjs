@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { exampleState, fixtureLocation, fixtureDeposit, fixtureRecovery } from './fixture.mjs';
-await import('../storage-core.js');
+await import('../inventory-core.js');
 const C = globalThis.VoyageStorageCore;
 const who = 'Example Adventurer';
 const inv = state => state.characters[who].inventory;

@@ -33,7 +33,7 @@ test('panel rechecks module availability after acquiring its lock and before nat
   let captured,busy=false,work=0,locks=0,native=0;
   const host={assertAvailable(){if(busy)throw Error('Time editor busy');},lock:async(_,run)=>{locks++;busy=true;return run();},capture:x=>captured=x,mountLaunchers(){},equip(){native++;}};
   const marker='host.mountLaunchers({ open, close, isOpen: () => !!panel, hasChanges, isBusy: () => busy || closeConfirming });';
-  const panel=fs.readFileSync(new URL('../storage-panel.js',import.meta.url),'utf8').replace(marker,'host.capture({locked,host});'+marker);
+  const panel=fs.readFileSync(new URL('../inventory-panel.js',import.meta.url),'utf8').replace(marker,'host.capture({locked,host});'+marker);
   const scope=vm.createContext({structuredClone,VoyageStorageCore:{storageKey:()=> 'test-record'}});
   vm.runInContext(panel,scope);scope.VoyageStoragePanel.install(host);
   await assert.rejects(captured.locked({},()=>{work++;}),/Time editor busy/);assert.equal(locks,1);assert.equal(work,0);

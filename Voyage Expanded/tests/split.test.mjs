@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {exampleState,fixtureDeposit} from './fixture.mjs';
-await import('../storage-core.js');await import('../carried-tree.js');
+await import('../inventory-core.js');await import('../carried-tree.js');
 const C=globalThis.VoyageStorageCore,who='Example Adventurer';
 function setup(){const state=exampleState();let vault=C.createVault(state,90001,who);vault=C.organizeCarried(state,vault,{type:'container',uuid:'pack',enabled:true});vault=C.organizeCarried(state,vault,{type:'move',uuid:'coins',parent:'pack'});return {state,vault};}
 

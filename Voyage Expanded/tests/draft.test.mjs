@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {exampleState} from './fixture.mjs';
-await import('../storage-core.js');await import('../inventory-draft.js');
+await import('../inventory-core.js');await import('../inventory-draft.js');
 const C=globalThis.VoyageStorageCore,D=globalThis.VoyageInventoryDraft,who='Example Adventurer',copy=value=>structuredClone(value);
 function harness(){
   const h={state:exampleState(),counts:{save:0,native:0,write:0},hooks:{}};

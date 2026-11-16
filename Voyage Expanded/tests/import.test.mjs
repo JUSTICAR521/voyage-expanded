@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { exampleState, fixtureLocation, fixtureDeposit, fixtureRecovery } from './fixture.mjs';
-await import('../storage-core.js');
+await import('../inventory-core.js');
 const C = globalThis.VoyageStorageCore;
 const who = 'Example Adventurer';
 const record = vault => ({ vault, beforeSnapshot: null });

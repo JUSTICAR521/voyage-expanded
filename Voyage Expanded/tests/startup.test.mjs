@@ -41,9 +41,9 @@ function startup(rules, page = 'https://alpha.voyage.io/play?saveId=123') {
 
 test('the old cross-world duplicate reproduces the silent missing launcher', () => {
   const oldRules = structuredClone(manifest.content_scripts);
-  oldRules.find(rule => rule.world === 'MAIN').js[0] = 'storage-core.js';
+  oldRules.find(rule => rule.world === 'MAIN').js[0] = 'inventory-core.js';
   const result = startup(oldRules);
-  assert.deepEqual(result.skipped, ['storage-core.js']);
+  assert.deepEqual(result.skipped, ['inventory-core.js']);
   assert.ok(result.worlds.get('MAIN').VoyageStorageCore);
   assert.equal(result.worlds.get('ISOLATED').VoyageStorageCore, undefined);
   assert.equal(result.mounts, 0);

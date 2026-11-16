@@ -8,9 +8,9 @@ test('the modular extension is independently loadable with an explicit runtime a
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.permissions, ['storage', 'unlimitedStorage', 'downloads']);
   const scripts = manifest.content_scripts.flatMap(entry => entry.js);
-  assert.deepEqual(scripts, ['storage-core-main.js', 'bridge.js', 'time-bridge.js', 'expanded-core.js', 'expanded-settings.js', 'storage-core.js', 'item-details.js', 'carried-tree.js', 'storage-operations.js', 'inventory-draft.js', 'storage-lock.js', 'storage-panel.js', 'voyage-adapter.js', 'time-ui.js', 'time-panel.js', 'time-adapter.js']);
+  assert.deepEqual(scripts, ['inventory-core-main.js', 'bridge.js', 'time-bridge.js', 'expanded-core.js', 'expanded-settings.js', 'inventory-core.js', 'item-details.js', 'carried-tree.js', 'inventory-operations.js', 'inventory-draft.js', 'inventory-lock.js', 'inventory-panel.js', 'voyage-adapter.js', 'time-ui.js', 'time-panel.js', 'time-adapter.js']);
   assert.equal(new Set(scripts).size, scripts.length, 'Chromium deduplicates content script paths across execution worlds');
-  assert.deepEqual(fs.readFileSync(new URL('storage-core-main.js', root)), fs.readFileSync(new URL('storage-core.js', root)), 'Run node build.mjs after changing storage-core.js');
+  assert.deepEqual(fs.readFileSync(new URL('inventory-core-main.js', root)), fs.readFileSync(new URL('inventory-core.js', root)), 'Run node build.mjs after changing inventory-core.js');
   for (const file of [...scripts, manifest.background.service_worker]) {
     const text = fs.readFileSync(new URL(file, root), 'utf8');
     assert.doesNotMatch(text, /npcList|addItemType|addTrait|healMarked/);

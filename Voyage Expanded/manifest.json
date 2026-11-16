@@ -11,7 +11,7 @@
     "downloads"
   ],
   "background": {
-    "service_worker": "storage-worker.js"
+    "service_worker": "inventory-worker.js"
   },
   "content_scripts": [
     {
@@ -20,7 +20,7 @@
         "https://*.voyage.io/*"
       ],
       "js": [
-        "storage-core-main.js",
+        "inventory-core-main.js",
         "bridge.js",
         "time-bridge.js"
       ],
@@ -35,13 +35,13 @@
       "js": [
         "expanded-core.js",
         "expanded-settings.js",
-        "storage-core.js",
+        "inventory-core.js",
         "item-details.js",
         "carried-tree.js",
-        "storage-operations.js",
+        "inventory-operations.js",
         "inventory-draft.js",
-        "storage-lock.js",
-        "storage-panel.js",
+        "inventory-lock.js",
+        "inventory-panel.js",
         "voyage-adapter.js",
         "time-ui.js",
         "time-panel.js",
