@@ -1,15 +1,17 @@
 # Voyage Expanded
 
-**Version 0.1.0 · Preview for desktop Chrome and Microsoft Edge**
+**Version 0.1.1 · Day & Time development · MIT licensed**
 
-Voyage Expanded adds optional Inventory and Day & Time modules to Voyage. It is an independent community extension, not an official Voyage product. An API key, a separate account, and build tools are not needed to use it.
+An independent community extension for **Voyage**, built for Chromium-based browsers. Organize your equipment, manage containers, leave possessions at campaign locations, and manually edit the campaign clock. This development build includes the optional Inventory and Day & Time modules.
+
+This build includes `main`'s stable Applying Changes screen, Settings navigation highlighting and compass icon, nested-container grouping, and consistent Recover styling. Published version 0.1.1 contains Inventory only; Day & Time is developed on `development/day-time`. Documented live Production, Beta, and Alpha checks cover the Inventory-only release, not Day & Time writes. This is not an official Voyage product. An API key, a separate account, and build tools are not needed to use it.
 
 Source, releases, and issues: [github.com/JUSTICAR521/voyage-expanded](https://github.com/JUSTICAR521/voyage-expanded).
 
 ## Install and choose modules
 
-1. Extract `Voyage Expanded.zip` and keep its **Voyage Expanded** folder somewhere permanent.
-2. Open `chrome://extensions` or `edge://extensions`.
+1. Extract the development build ZIP and keep its **Voyage Expanded** folder somewhere permanent. If using GitHub's branch source ZIP, select the inner **Voyage Expanded** folder inside the extracted repository.
+2. Open your browser's Extensions page (for example, `chrome://extensions` or `edge://extensions`).
 3. Turn on **Developer mode**, choose **Load unpacked**, and select the folder directly containing `manifest.json`.
 4. Allow Voyage site access if prompted, then refresh your Voyage tab.
 5. Open **Settings → Voyage Expanded** to choose your modules.
@@ -20,17 +22,19 @@ Source, releases, and issues: [github.com/JUSTICAR521/voyage-expanded](https://g
 | Hide Native Inventory | On | Hides the native Inventory tab while Inventory is enabled. Turn off to use both. |
 | Day & Time | On | Adds the clock editor and location-to-Map shortcut. |
 
-The Settings section stays available with all modules off. Settings are shared by Voyage tabs in this browser profile; they do not sync between browsers. Hide Native Inventory is unavailable while Inventory is off. Turning a module off removes its controls and stops its UI monitoring, but preserves saved possessions and previously applied game changes.
+The Settings section stays available with both modules off. Settings are shared by Voyage tabs in this browser profile; they do not sync between browsers. Hide Native Inventory is unavailable while Inventory is off. Turning a module off removes its controls and stops its UI monitoring, but preserves saved possessions and previously applied game changes.
 
 If Inventory has an open draft, disabling it uses the same Apply / Cancel / Discard decision as closing it. An operation already being applied must finish first. A Day & Time window must be closed before disabling that module. A change from another tab can wait for that tab's open window to close.
 
-The browser-toolbar entry has no popup. File-URL and private-browsing access are unnecessary. Use only one Expanded/Inventory/Time/Complete build at a time.
+The browser-toolbar entry has no popup. File-URL and private-browsing access are unnecessary. Use only one installation of Voyage Expanded at a time.
 
 ## Access and compatibility
 
 You need access to your campaign's **State Editor** to apply changes. The extension uses your existing Voyage session; it does not grant host or moderator permissions. Start with a duplicated test campaign.
 
-The code reads categories, tiers, equipment slots, and locations from the current World. It is not tied to Larion, but relies on Voyage's UI and state structure. A matching URL does not guarantee every World, Production/Beta/Alpha environment, or future patch will work. This package targets desktop Chromium browsers, not iOS/Safari or a native Voyage app. Remote access to a supported PC browser still runs the PC extension.
+The code reads categories, tiers, equipment slots, and locations from the current World. One installation supports Voyage's **Production, Beta, and Alpha** environments. No separate extension is needed when changing environments. Independent test campaigns passed live inventory checks in all three on November 16, 2026. It relies on Voyage's UI and state structure, so these checks do not guarantee every World or future patch will work. This package targets desktop Chromium browsers, not iOS/Safari or a native Voyage app. Remote access to a supported PC browser still runs the PC extension.
+
+**Switching environments with a single save may or may not work properly.** Within the same browser profile and extension installation, Inventory uses the same local record for the same campaign and character across environments. Voyage may open an older or incompatible state, while extension storage does not automatically rewind with it. Finish any pending changes and export a backup before switching. Avoid editing the same save in multiple environments at once. Existing checks can block transfers when an older or mismatched state is detected; they do not guarantee a successful transition.
 
 ## Organize carried items
 
@@ -90,7 +94,7 @@ Cancel, Close, or Escape closes without saving; Escape first closes an open drop
 
 ## Backups and multiple campaigns
 
-Records are separate for each campaign and character. Chrome, Edge, different profiles, and separately loaded extension folders each have their own data. **There is no cloud sync or automatic backup download.** Export Backup is manual and exports the current campaign/character record.
+Records are separate for each campaign and character. Different browsers, browser profiles, and separately loaded extension installations each maintain their own data. **There is no cloud sync or automatic backup download.** Export Backup is manual and exports the current campaign/character record.
 
 1. Apply or discard drafts and resolve unfinished operations.
 2. Click **Export Backup** and wait for the download to finish. Files appear under **Downloads / Voyage Inventory**.
@@ -115,7 +119,7 @@ Disabling Inventory or the entire extension retains local records. Stored items 
 
 | Problem | Try this |
 | --- | --- |
-| Inventory/time controls missing | Check extension enabled, Voyage site access, and module switches. Reload extension and refresh Voyage. Disable duplicate builds. |
+| Inventory controls missing | Check extension enabled, Voyage site access, and module switches. Reload extension and refresh Voyage. Disable duplicate builds. |
 | Module cannot turn off | Close its open window; apply/cancel/discard Inventory edits or wait for a running action to finish. |
 | State Editor access error | Confirm your campaign role permits it. Close Settings and other editors first. |
 | Another tab is using the record | Finish or close that operation, then refresh Inventory. |

@@ -2,9 +2,9 @@
   "manifest_version": 3,
   "name": "Voyage Expanded",
   "short_name": "Expanded",
-  "version": "0.1.0",
-  "version_name": "0.1.0 - Preview",
-  "description": "Optional Inventory and Day & Time modules for Voyage, with containers and location storage.",
+  "version": "0.1.1",
+  "version_name": "0.1.1 - Day & Time Development",
+  "description": "Optional Inventory and Day & Time modules for Voyage, with containers, location storage, and manual clock editing.",
   "permissions": [
     "storage",
     "unlimitedStorage",
