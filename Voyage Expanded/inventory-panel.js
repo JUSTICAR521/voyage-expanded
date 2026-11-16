@@ -1007,6 +1007,8 @@
       });
     }
     async function applyDraft(){
+      const run = host.withApplyingChanges || (work => work());
+      return run(async()=>{
       const session=inventoryDraft,identity=session.baseRecord.vault.identity;
       try{
         await locked(identity,async()=>{
@@ -1025,6 +1027,7 @@
         if(pending?.draftApply){inventoryDraft=null;record=pending;snapshot=await readLive(identity);}
         throw error;
       }
+      });
     }
     async function close(){
       if(busy||!panel||closeConfirming)return;

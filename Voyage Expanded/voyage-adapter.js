@@ -201,12 +201,30 @@
       window.postMessage({ type: 'voyage-storage:request', id, op, args }, location.origin);
     });
   }
+  let activeCover = null;
   function cover(message) {
-    const node = document.createElement('div'); node.setAttribute('data-voyage-storage', 'transfer-cover');
-    node.style.cssText = 'position:fixed;inset:0;z-index:2147483645;background:#090f18ed;display:grid;place-items:center;color:#d9eee9;font:15px system-ui';
-    node.textContent = message;
-    const inventory = document.querySelector('[data-voyage-storage="storage-window"]')?.shadowRoot?.querySelector('.veil[open]');
-    (inventory || document.body).append(node); return () => node.remove();
+    if (!activeCover) {
+      const node = document.createElement('div'); node.setAttribute('data-voyage-storage', 'transfer-cover');
+      node.style.cssText = 'position:fixed;inset:0;z-index:2147483645;background:#090f18ed;display:grid;place-items:center;color:#d9eee9;font:15px system-ui';
+      node.textContent = message;
+      node.setAttribute('role', 'status');
+      const inventory = document.querySelector('[data-voyage-storage="storage-window"]')?.shadowRoot?.querySelector('.veil[open]');
+      (inventory || document.body).append(node);
+      activeCover = { node, users: 0 };
+    }
+    // The batch owns the cover across native actions, persistence, and waits.
+    // Nested operations reuse it without replacing its message or removing it.
+    const current = activeCover; current.users++;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      if (--current.users === 0) { current.node.remove(); activeCover = null; }
+    };
+  }
+  async function withApplyingChanges(work) {
+    const uncover = cover('Applying Changes...');
+    try { return await work(); } finally { uncover(); }
   }
   async function session(message, work) {
     assertAvailable();
@@ -343,7 +361,7 @@
   const readSaved=identity=>directSavedAction('storageReadSaved',{identity},'Verifying saved possessions…');
   const readRecovery=identity=>directSavedAction('storageReadRecovery',{identity},'Reviewing saved possessions…');
   const saveInventory=args=>directSavedAction('storageTransferDirect',args,'Applying Changes...');
-  const adapter = Object.freeze({ bridge, withStateEditor, onPlayPage, equip, unequip, deleteItem, readSaved, readRecovery, saveInventory, mountLaunchers, assertAvailable });
+  const adapter = Object.freeze({ bridge, withStateEditor, withApplyingChanges, onPlayPage, equip, unequip, deleteItem, readSaved, readRecovery, saveInventory, mountLaunchers, assertAvailable });
   globalThis.VoyageStorageAdapter = adapter;
   globalThis.VoyageStoragePanel?.install(adapter);
 })();

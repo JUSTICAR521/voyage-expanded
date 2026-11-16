@@ -1,10 +1,10 @@
 # Validation for 0.1.1
 
-Checked on 2026-11-16. This documentation-only update includes Inventory only. Day & Time development is preserved on a separate branch and is not loaded or packaged. Runtime JavaScript is byte-identical to 0.1.0; the packaged changes are the user guide and manifest version metadata.
+Checked on 2026-11-16. This update includes Inventory only. Day & Time development is preserved on a separate branch and is not loaded or packaged. The applying overlay now spans the entire draft application, including native equipment actions, inventory transfers, final persistence, and error cleanup.
 
 ## Automated checks
 
-Node.js 24.22.1 on Windows: **316 tests, 316 passed, 0 failed, 0 skipped**.
+Node.js 24.22.1 on Windows: **321 tests, 321 passed, 0 failed, 0 skipped**. Five new checks cover stable batch-overlay lifetime, standalone actions, failure cleanup, and panel integration.
 
 Coverage includes inventory planning, filled/nested container transfers, equipment effects and draft application, stack operations, save/character separation, backup imports, stale-state rejection, interrupted-operation recovery, worker locking, startup on Voyage navigation routes, preferences, cross-tab changes, and shutdown during draft completion. Saved clock preferences cannot activate an unshipped module.
 
@@ -12,7 +12,7 @@ The 16-file share folder and ZIP in `dist` are compared against the single sourc
 
 ## Browser checks and limits
 
-Edge checks for 0.1.0 using a disposable local fixture confirmed that Settings exposes only Inventory and Hide Native Inventory, Inventory can be turned off and back on, Hide Native Inventory becomes unavailable while Inventory is off, and the Inventory launcher opens the populated possessions window. No browser console warnings or errors were observed during those checks. The native day/location line remained present without the extension clock controls. These browser checks were not repeated for the documentation-only 0.1.1 update.
+Edge checks for 0.1.0 using a disposable local fixture confirmed that Settings exposes only Inventory and Hide Native Inventory, Inventory can be turned off and back on, Hide Native Inventory becomes unavailable while Inventory is off, and the Inventory launcher opens the populated possessions window. No browser console warnings or errors were observed during those checks. The native day/location line remained present without the extension clock controls. These browser checks were not repeated for 0.1.1; the overlay change has automated coverage but still needs visual confirmation in the installed extension.
 
 Earlier fixture checks covered native-inventory visibility, draft protection, cross-tab preferences, and retained possessions; those broader checks were not repeated for this packaging change.
 

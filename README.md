@@ -6,7 +6,7 @@ An independent community extension for **Voyage**, built for Chromium-based brow
 
 [Download the published 0.1.0 ZIP](https://github.com/JUSTICAR521/voyage-expanded/releases/tag/v0.1.0) · [Current development guide](<Voyage Expanded/share-docs/README.md>) · [Published 0.1.0 guide](https://github.com/JUSTICAR521/voyage-expanded/blob/v0.1.0/Voyage%20Expanded/share-docs/README.md) · [Report an issue](https://github.com/JUSTICAR521/voyage-expanded/issues)
 
-The prepared 0.1.1 update changes documentation and version metadata only; Inventory behavior is unchanged from 0.1.0. It has not been published. Day & Time is not included in the published release or the current `main` branch.
+The prepared 0.1.1 update aligns documentation and keeps the Applying Changes screen visible continuously until an Inventory batch finishes. It has not been published. Day & Time is not included in the published release or the current `main` branch.
 
 ## Inventory settings
 
