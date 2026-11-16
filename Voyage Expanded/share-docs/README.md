@@ -4,7 +4,7 @@
 
 An independent community extension for **Voyage**, built for Chromium-based browsers. Organize your equipment, manage containers, and leave possessions at campaign locations. This initial release includes the Inventory module.
 
-Version 0.1.1 aligns documentation and keeps the Applying Changes screen visible continuously until an Inventory batch finishes. Day & Time is not included. This is not an official Voyage product. An API key, a separate account, and build tools are not needed to use it.
+Version 0.1.1 keeps the Applying Changes screen visible throughout an Inventory batch, fixes Settings navigation highlighting, and adds a compass icon to the Voyage Expanded settings entry. Documentation includes compatibility checks on independent Production, Beta, and Alpha campaigns. Day & Time is not included. This is not an official Voyage product. An API key, a separate account, and build tools are not needed to use it.
 
 Source, releases, and issues: [github.com/JUSTICAR521/voyage-expanded](https://github.com/JUSTICAR521/voyage-expanded).
 
