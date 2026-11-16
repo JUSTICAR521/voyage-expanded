@@ -78,7 +78,7 @@
     const data=treeData||C.carriedTree(state,vault), wrapper=node('div','carried-organizer'),editBlocked=blocked||organizationBlocked;
     const loose=data.roots.filter(n=>!n.container),root=node('li','carried-group');root.setAttribute('role','none');
     const rootExpanded=!view.looseCollapsed||!!query.trim()||filter!=='all';
-    const rootHeader=node('button','carried-root');rootHeader.type='button';rootHeader.disabled=blocked;rootHeader.setAttribute('aria-label',rootLabel);rootHeader.setAttribute('aria-expanded',String(rootExpanded));rootHeader.title=`${rootExpanded?'Collapse':'Expand'} ${rootLabel}`;rootHeader.append(node('strong','',rootLabel),contentsBadge(loose,rootLabel));
+    const rootHeader=node('button','carried-root');rootHeader.type='button';rootHeader.disabled=blocked;rootHeader.setAttribute('aria-label',rootLabel);rootHeader.setAttribute('aria-expanded',String(rootExpanded));rootHeader.title=`${rootExpanded?'Collapse':'Expand'} ${rootLabel}`;rootHeader.append(node('strong','',rootLabel),contentsBadge(data.roots,rootLabel));
     if(rootSuffix){const label=rootHeader.firstChild;label.className='root-label';label.append(node('span','root-suffix',` · ${rootSuffix}`));}
     const looseList=node('ul','tree-loose');looseList.id=`loose-items-${crypto.randomUUID()}`;looseList.hidden=!rootExpanded;looseList.setAttribute('role','group');looseList.setAttribute('aria-label',rootLabel);rootHeader.setAttribute('aria-controls',looseList.id);root.append(rootHeader,looseList);
     const toggleRoot=()=>{if(blocked)return;view.looseCollapsed=!view.looseCollapsed;onViewChange(null);};
@@ -178,8 +178,8 @@
       return li;
     }
     for(const n of loose)if(shown.has(n.item.uuid))looseList.append(entry(n,1));
+    for(const n of data.roots)if(n.container&&shown.has(n.item.uuid))looseList.append(entry(n,1));
     tree.append(root);
-    for(const n of data.roots)if(n.container&&shown.has(n.item.uuid))tree.append(entry(n,1));
     wrapper.append(tree);
     const initial=[...tree.querySelectorAll('[role=treeitem]')].find(el=>el.dataset.uuid===view.focus&&!el.closest('[hidden]'))||visibleRows()[0];if(initial)initial.tabIndex=0;
     return {node:wrapper,focus,cleanup:()=>{cleanup();dropGroup.delete(descriptor);window.removeEventListener('blur',cleanup);}};
