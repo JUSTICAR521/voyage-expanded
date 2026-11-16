@@ -30,6 +30,20 @@ The Alpha sword deposit removed its negative Attunement modifier (9 → 10). Ret
 
 The Applying Changes overlay was present during both operations and cleared on completion. Its uninterrupted lifetime between individual substeps is covered by automated tests; this live pass did not capture a continuous recording to measure flicker.
 
-Voyage Preview requires a particular preview URL or PR number rather than identifying one permanent build. It was excluded at the user's request. Production/Beta write compatibility and live cross-environment storage continuity remain unverified until a compatible fresh test campaign is available. Sixteen focused automated startup, cross-origin locking, and backup tests passed during this check; they do not replace those live tests.
+Voyage Preview requires a particular preview URL or PR number rather than identifying one permanent build. It was excluded at the user's request. Sixteen focused automated startup, cross-origin locking, and backup tests passed during this check; they do not replace live tests.
+
+#### Fresh Production campaign follow-up
+
+A new disposable Larion campaign with the Brennan preset was created in Production and opened in Beta and Alpha. Production initially showed no extension controls because Edge's site-wide **Allow extensions on voyage.io** switch was off, despite the extension's own site permissions being enabled. Enabling that switch restored the launcher and settings without a code change.
+
+At turn 0, the native State Editor reported `engineState.phase: CreateCharacter` after the introductory scene. Apply was refused by the existing phase guard. The unapplied draft was discarded, and one equipment-check story action advanced the disposable campaign to turn 1. This remains a new-game usability limitation: the current generic busy message does not explain that the initial character-creation phase can persist until the first turn.
+
+At turn 1, Production successfully deposited equipped trousers and an equipped sword, then retrieved and equipped both. The sword's negative Attunement modifier was removed (12 → 13) and restored (13 → 12). Manual exports verified that the final character matched the turn-1 baseline field for field, including all 69 carried units and equipment. Storage was empty and no transfer or draft application remained pending. No story actions occurred during the equipment round trip.
+
+Alpha subsequently loaded turn 1 using the same extension record identity without an import. Its exported character matched the Production baseline exactly. Nonempty storage retrieval across environments was not completed.
+
+Beta repeatedly reopened turn 0, including after using Voyage's official environment switcher and reopening through Saves. The extension refused to load it with **This save is older than the last verified transfer. Rewind reconciliation is required.** The original Production room retained turn 1 and Alpha opened turn 1; the underlying reason for Beta's older state was not established. No Beta inventory writes were performed and its write compatibility remains unverified. The refusal was not bypassed. Avoid simultaneously operating divergent rooms for the same save.
+
+Eleven focused startup and cross-origin locking tests passed again during this follow-up. The environment preference was restored to Alpha. No extension runtime files changed and no release was published.
 
 No fresh Chrome browser test was performed. Environment build IDs are point-in-time observations, not a promise of compatibility with future Voyage updates. Try a dedicated test save first and export existing extension records before changing installations.
