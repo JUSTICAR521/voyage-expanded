@@ -1,0 +1,13 @@
+{
+  "name": "voyage-expanded",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Optional Inventory and Day & Time modules for Voyage",
+  "license": "MIT",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "node \"Voyage Expanded/build.mjs\"",
+    "test": "node --test \"Voyage Expanded/tests/*.test.mjs\"",
+    "preview": "node \"Voyage Expanded/tests/serve.mjs\""
+  }
+}
