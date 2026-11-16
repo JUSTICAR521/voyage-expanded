@@ -75,13 +75,14 @@
           picker.closePicker(); dialog.close();
           let attempted = false;
           try {
+            await globalThis.VoyageJournal.capture({immediate:true});
             await host.withStateEditor('Saving day and time…', async ed => {
               await ed.open('all');
               const before = await ed.call('clockSnapshot', { expected: opening });
               await ed.call('clockStage', { expected: opening, before, ...desired });
               await ed.save(async () => { await ed.call('clockBeforeSave', { expected: opening, before }); attempted = true; });
             });
-            saving = false; close(); schedule();
+            saving = false; close(); schedule(); window.dispatchEvent(new Event('voyage-expanded:state-saved'));
           } catch (error) {
             saving = false;
             if (route() !== initialRoute) { close(); return; }
@@ -140,7 +141,8 @@
       if (modal.picker?.control.getAttribute('aria-expanded') === 'true') modal.picker.closePicker(); else close();
     };
     const observer = new MutationObserver(schedule);
-    globalThis.VoyageExpanded?.register('time', {
+    const controller = {
+      open,
       start() {
         enabled = true; document.documentElement.append(rule);
         observer.observe(document.body, { childList: true, subtree: true, characterData: true });
@@ -148,7 +150,7 @@
         interval = setInterval(schedule, 1500); schedule();
       },
       stop() {
-        if (saving) throw new Error('Wait for the clock save to finish before disabling Day & Time.');
+        if (saving) throw new Error('Wait for the clock save to finish before disabling Journal.');
         // Keep an open editor available so an unsubmitted correction is not lost.
         if (modal) return false;
         enabled = false; observer.disconnect(); clearInterval(interval); interval = null;
@@ -157,7 +159,8 @@
         for (const [source, row] of rows) { row.row.remove(); source.removeAttribute('data-voyage-time-source'); }
         rows.clear(); rule.remove(); return true;
       }
-    });
+    };
+    globalThis.VoyageJournal.attachClock(controller);
   }
   globalThis.VoyageTimePanel = Object.freeze({ install });
 })();

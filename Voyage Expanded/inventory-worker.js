@@ -1,4 +1,5 @@
 importScripts('inventory-core.js');
+importScripts('journal-core.js', 'journal-store.js', 'journal-worker.js');
 const C = globalThis.VoyageStorageCore;
 const voyageSender = sender => sender?.id === chrome.runtime.id && !!sender.tab && /^https:\/\/([a-z0-9-]+\.)*voyage\.io\//i.test(sender.url || '');
 

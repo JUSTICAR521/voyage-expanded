@@ -224,7 +224,8 @@
   }
   async function withApplyingChanges(work) {
     const uncover = cover('Applying Changes...');
-    try { return await work(); } finally { uncover(); }
+    try { await globalThis.VoyageJournal?.capture({immediate:true}); return await work(); }
+    finally { uncover(); globalThis.VoyageJournal?.capture({immediate:true}); }
   }
   async function session(message, work) {
     assertAvailable();

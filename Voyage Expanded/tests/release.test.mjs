@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {inflateRawSync} from 'node:zlib';
 const dev=new URL('..',import.meta.url),base=new URL('../',dev),release=new URL('dist/Voyage Expanded/',base);
 const manifest=JSON.parse(fs.readFileSync(new URL('manifest.json',dev),'utf8'));
-const files=[...new Set([...manifest.content_scripts.flatMap(x=>x.js),manifest.background.service_worker]),'manifest.json','README.md','LICENSE'].sort();
+const files=[...new Set([...manifest.content_scripts.flatMap(x=>x.js),manifest.background.service_worker,'journal-store.js','journal-worker.js']),'manifest.json','README.md','LICENSE'].sort();
 test('share folder contains only the declared runtime, guide, manifest, and MIT license',()=>{
   assert.deepEqual(fs.readdirSync(release).sort(),files);
   const publicManifest=JSON.parse(fs.readFileSync(new URL('manifest.json',release),'utf8'));

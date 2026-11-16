@@ -1,4 +1,29 @@
-# Day & Time development validation
+# Journal development validation
+
+## Permanent journal and personal entries — 2026-11-16
+
+Journal expands and renames the Day & Time module while preserving its existing preference key and clock editor. Recording reads available native turns and narrowly scoped inventory, visible quest, and clock observations. It writes separate extension-local records with generated IDs; it does not edit AI memory, request embeddings, submit story turns, or save native game state. Exact original turns and successive player-entry edits are retained independently.
+
+Node.js 24.22.1 on Windows: the build succeeded and **370 automated tests passed, 0 failed, 0 skipped**. The **25-file** generated folder and ZIP match source and the packaged guide. Both generated MAIN-world core copies match their source. `git diff --check` passed.
+
+The 33 new Journal tests cover exact original preservation, exclusion of AI memory/hidden quest definitions, unknown historical dates, 125-turn rolling compaction and reload, duplicate capture, broad-summary rejection, original revisions and retained dates, rewinds, inventory/quest/time observations, party-membership changes, historical quest markers, gaps, editable personal-entry versions, search/filtering, recovered events without a surviving original, backup/import deduplication and conflict rejection, missing-record repair, reverse-order backup restoration, malformed imports, storage failure/retry, incomplete-generation exclusion, and serialized concurrent capture. Worker checks cover the 100-turn automatic threshold, completed-download acknowledgement, interrupted and partially completed downloads, delayed retries, disabling automatic exports, recording ownership/takeover/expiry, and foreign-sender rejection.
+
+In the local Edge fixture, the real Journal recorder, store, worker, and panel ran against synthetic native data and simulated Chrome transport/downloads. Verified:
+
+- The first two full turns appeared, with the observed current clock and an unknown historical date left unfilled.
+- A personal entry beginning “I finally did it. I joined the League today.” saved above the separate original action and full story.
+- Advancing two synthetic turns recorded time transitions, inventory gains, and quest completion. A separate inventory edit was labeled as occurring between turns.
+- Compacting native history to one surviving turn and reloading retained all **four full originals and ten permanent records**, including the player entry.
+- Personal-text search and the My entries filter returned the saved page. Manual export reported a completed simulated download.
+- Journal opened the existing Day & Time popup. Settings displayed Journal under the retained preference key; disabling and re-enabling it preserved the archive.
+
+The fixture reported **zero native saves and zero State Editor openings** during these Journal checks. Screenshot evidence is kept outside the repository. A read-only Alpha inspection of native Turn Data and Parties at turn 2 informed the synthetic shapes: `turnData[].tick`, `playerInputs`, `storyMessage`, `storyParagraphs`, `statusUpdates`, and `pastUpdates`, plus visible quest records. No private campaign text or party dumps are included in source or tests.
+
+Limits: Journal capture during live gameplay with the installed extension and actual automatic browser downloads has not yet been verified. The browser export check used a simulated completed download; the worker tests cover completion/failure behavior. Live Production/Beta/Alpha Inventory evidence below is historical and does not establish Journal capture or clock-write compatibility. Clock editing retains the existing native State Editor path. Historical text already discarded by Voyage cannot be recovered; recording must be enabled with the campaign open. Storage remains limited by available disk space, and exports do not prune it.
+
+---
+
+# Day & Time development validation (historical)
 
 ## Expanded time dropdown — 2026-11-16
 

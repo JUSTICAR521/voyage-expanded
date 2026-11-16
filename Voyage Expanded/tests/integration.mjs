@@ -61,6 +61,32 @@ if (nativeLineMode) {
   state.parties[state.partyId].engineState.phase = 'State';
   const lineStyle = document.createElement('style'); lineStyle.textContent = '.sample-day-location{display:flex;align-items:center;flex:1 1 auto;min-width:0;border:0;background:transparent;padding:0;margin:0;color:#bcbcbc;font:14px/20px system-ui;text-align:left}'; document.head.append(lineStyle);
 }
+const journalMode=new URLSearchParams(location.search).has('journal');
+const journalStateKey=`${treeStorageKey}-native-journal-state`;
+function journalTurn(tick){return {type:'complex',tick,turnHash:`fixture-${tick}`,playerInputs:{'Example Adventurer':tick===1?'I sign the League register.':`Continue the journey, turn ${tick}.`},storyMessage:tick===1?'Narrator: You sign the register with a steady hand. The clerk presses a bronze League badge into your palm.\n\nClerk: Welcome to the League. Your first mission awaits.':`Narrator: The road carries you onward. This is the complete original story of turn ${tick}.`,storyParagraphs:[],statusUpdates:tick===1?[{eventType:'GENERAL',text:'Joined the League.'},{eventType:'INVENTORY',text:'Received a bronze League badge.'}]:[],pastUpdates:{majorEvents:[],itemUpdates:[]},extraNativeField:{preserved:true}};}
+if(journalMode){
+  const saved=localStorage.getItem(journalStateKey);
+  if(saved)Object.assign(state,JSON.parse(saved));
+  else{
+    const party=state.parties[state.partyId];party.engineState={ticks:1,phase:'State'};
+    Object.assign(party.partyState,{day:1,timeOfDay:'morning',partyMembers:['Example Adventurer']});
+    party.turnData=[journalTurn(0),journalTurn(1)];
+    party.quests={league:{id:'league',name:'A Place in the League',status:'accepted',questStatement:'Complete your first mission.',acceptedTick:1}};
+  }
+}
+async function journalAction(kind){
+  await globalThis.VoyageJournal.capture({immediate:true});
+  const party=state.parties[state.partyId];
+  if(kind==='advance'){
+    const tick=++party.engineState.ticks;party.turnData.push(journalTurn(tick));
+    party.partyState.timeOfDay=['morning','afternoon','evening'][tick%3];
+    state.characters['Example Adventurer'].inventory.coins.quantity+=10;
+    if(tick===3){party.quests.league.status='completed';party.quests.league.completedTick=tick;}
+  }else if(kind==='compact')party.turnData=party.turnData.slice(-1);
+  else if(kind==='inventory')state.characters['Example Adventurer'].inventory.coins.quantity-=2;
+  localStorage.setItem(journalStateKey,JSON.stringify(state));render();
+  await globalThis.VoyageJournal.capture({immediate:true});
+}
 const treeBaseline = globalThis.VoyageStorageCore.stable(state);
 const compact = new URLSearchParams(location.search).has('compact');
 let browsingSections = false;
@@ -149,19 +175,22 @@ window.addEventListener('storage', event => {
   for(const listener of storageListeners)listener(changes,'local');
 });
 let workerConnect;
+const workerMessages=[],downloadChanges=new Set(),journalDownloads=new Map();
 const { portPair } = await import('./port-pair.mjs');
 // Use the real port protocol and worker in this disposable page fixture. Only
 // the transport and storage are mocked; no actual extension records are used.
 globalThis.importScripts = () => {};
 globalThis.chrome = {
+  downloads:{download:async args=>{const id=journalDownloads.size+1;journalDownloads.set(id,{id,state:'complete',filename:args.filename,packet:JSON.parse(decodeURIComponent(args.url.split(',').slice(1).join(',')))});backups++;trace();return id;},search:async({id})=>[journalDownloads.get(id)],onChanged:{addListener:fn=>downloadChanges.add(fn),removeListener:fn=>downloadChanges.delete(fn)}},
   storage: { onChanged: { addListener: listener => storageListeners.add(listener), removeListener: listener => storageListeners.delete(listener) }, local: {
     get: async key => { if(treeMode){store.clear();for(const [id,value] of JSON.parse(localStorage.getItem(treeStorageKey)||'[]'))store.set(id,value);}return Object.fromEntries((Array.isArray(key)?key:[key]).map(k=>[k,persisted(store.get(k))])); },
     set: async values => { if(treeMode){store.clear();for(const [id,value] of JSON.parse(localStorage.getItem(treeStorageKey)||'[]'))store.set(id,value);} const changes={};for (const [key, value] of Object.entries(values)) {changes[key]={oldValue:store.get(key),newValue:persisted(value)};store.set(key, persisted(value));}if(treeMode)localStorage.setItem(treeStorageKey,JSON.stringify([...store]));for(const listener of storageListeners)listener(changes,'local');trace(); }
   } },
-  runtime: { id:'local-fixture', onConnect:{addListener:fn=>workerConnect=fn}, onMessage:{addListener(){}}, connect:()=>{
+  runtime: { id:'local-fixture', onConnect:{addListener:fn=>workerConnect=fn}, onMessage:{addListener:fn=>workerMessages.push(fn)}, connect:()=>{
     const pair=portPair({id:'local-fixture',tab:{id:1},url:'https://alpha.voyage.io/play'});
     queueMicrotask(()=>workerConnect(pair.worker));return pair.client;
   }, sendMessage: async message => {
+    if(message.type==='voyage-journal')return new Promise((resolve,reject)=>{for(const listener of workerMessages)if(listener(message,{id:'local-fixture',tab:{id:1},url:'https://alpha.voyage.io/play'},resolve)===true)return;reject(Error('Journal worker did not handle the request.'));});
     if (message.type !== 'voyage-storage:backup' || JSON.parse(message.json).format !== 'voyage-storage-backup') throw new Error('Unexpected backup request');
     if (areaMode && new URLSearchParams(location.search).has('failBackup')) return { ok:false, error:'Simulated interrupted backup download.' };
     if (areaMode && message.name.endsWith('-before-destination-create') && new URLSearchParams(location.search).has('areaRace')) delete state.locations.City.areas.Market;
@@ -178,6 +207,12 @@ function render() {
     trace(); return;
   }
   if (view === 'game') {
+    if(journalMode){
+      const controls=node('section');controls.setAttribute('aria-label','Journal fixture controls');
+      const party=state.parties[state.partyId];controls.append(node('p',`Synthetic campaign · Turn ${party.engineState.ticks} · ${party.turnData.length} full turns still held by Voyage`));
+      for(const [label,kind] of [['Advance test turn','advance'],['Compact native history','compact'],['Change inventory between turns','inventory']])controls.append(action(label,()=>journalAction(kind)));
+      root.append(controls);
+    }
     if (areaMode || areaContainersMode) {
       root.append(node('p', `Current area: ${state.parties[state.partyId].partyState.currentLocationArea}`));
       if (areaContainersMode) root.append(node('p', 'Test travel shortcuts: Alt+H = Family Home; Alt+M = Watchtower. Works with Inventory open.'));
@@ -327,6 +362,6 @@ render();
 window.addEventListener('popstate', render);
 narrowNavigation.addEventListener('change', () => { if (view === 'game') render(); });
 const manifest = await (await fetch('/manifest.json')).json();
-for (const file of [manifest.background.service_worker, ...manifest.content_scripts.flatMap(entry => entry.js)]) {
+for (const file of ['journal-core.js','journal-store.js','journal-worker.js',manifest.background.service_worker, ...manifest.content_scripts.flatMap(entry => entry.js)]) {
   await new Promise((resolve, reject) => { const script = node('script'); script.src = `/${file}`; script.onload = resolve; script.onerror = reject; document.body.append(script); });
 }

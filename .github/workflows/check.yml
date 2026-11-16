@@ -17,5 +17,5 @@ jobs:
           package-manager-cache: false
       - run: npm run build
       - run: npm test
-      - name: Verify generated runtime copy is current
-        run: git diff --exit-code -- 'Voyage Expanded/inventory-core-main.js'
+      - name: Verify generated runtime copies are current
+        run: git diff --exit-code -- 'Voyage Expanded/inventory-core-main.js' 'Voyage Expanded/journal-core-main.js'

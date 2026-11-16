@@ -3,8 +3,8 @@
   "name": "Voyage Expanded",
   "short_name": "Expanded",
   "version": "0.1.1",
-  "version_name": "0.1.1 - Day & Time Development",
-  "description": "Optional Inventory and Day & Time modules for Voyage, with containers, location storage, and manual clock editing.",
+  "version_name": "0.1.1 - Journal Development",
+  "description": "Inventory organization and a permanent campaign journal for Voyage, with full turn history, personal entries, and clock editing.",
   "permissions": [
     "storage",
     "unlimitedStorage",
@@ -21,6 +21,7 @@
       ],
       "js": [
         "inventory-core-main.js",
+        "journal-core-main.js",
         "bridge.js",
         "time-bridge.js"
       ],
@@ -45,6 +46,8 @@
         "voyage-adapter.js",
         "time-ui.js",
         "time-panel.js",
+        "journal-core.js",
+        "journal-panel.js",
         "time-adapter.js"
       ],
       "run_at": "document_idle"
