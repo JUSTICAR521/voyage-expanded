@@ -25,8 +25,8 @@ document.querySelector('#run').addEventListener('click',async()=>{
  await settle();entry().click();await settle();assert(selected()==='Voyage Expanded','Expanded is the only selected entry');assert(entry().className==='selected','Native selected styling is inherited');assert(entry().querySelector('svg[aria-hidden="true"]'),'Decorative compass icon exists');
  const inventory=()=>document.querySelector('#voyage-expanded-inventory'),time=()=>document.querySelector('#voyage-expanded-time'),hideNative=()=>document.querySelector('#voyage-expanded-hideNativeInventory');
  assert(inventory()?.checked&&time()?.checked&&hideNative()?.checked,'Both modules and native-inventory preference are present and enabled');
- time().click();await settle();assert(!time().checked&&inventory().checked,'Day & Time can be disabled independently');time().click();await settle();
- inventory().click();await settle();assert(time().checked&&!time().disabled&&hideNative().disabled,'Day & Time stays available with Inventory off');inventory().click();await settle();
+ time().click();await settle();assert(!time().checked&&inventory().checked,'Journal can be disabled independently');time().click();await settle();
+ inventory().click();await settle();assert(time().checked&&!time().disabled&&hideNative().disabled,'Journal stays available with Inventory off');inventory().click();await settle();
  document.querySelector('button[aria-label="Display"]').click();await settle();assert(selected()==='Display','Native navigation restores selection');assert(entry().className==='idle','Expanded loses selected styling');
  entry().click();await settle();document.querySelector('.overflow-y-auto').scrollTop=450;await settle();assert(selected()!=='Voyage Expanded','Scrolling away clears Expanded selection');
  entry().click();await settle();const search=document.querySelector('input');search.value='unmatched';search.dispatchEvent(new Event('input',{bubbles:true}));await settle();assert(entry().hidden&&entry().getAttribute('aria-pressed')==='false','Search hiding clears selection');

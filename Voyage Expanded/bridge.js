@@ -368,6 +368,7 @@
     return {saveId,partyId,activeCharacter:typeof key==='string'&&own(state.characters,key)?key:null,areaContext:globalThis.VoyageStorageCore.locationContext(state,saveId,key),canEquip:typeof runtime.actions?.runCommandWithAck==='function',canUnequip:typeof runtime.actions?.runCommandWithAck==='function',canDelete:typeof runtime.actions?.runCommandWithAck==='function',itemSettings:clone({currencyName:state.itemSettings?.currencyName||'',tiers,itemSlots:state.itemSettings?.itemSlots||[]})};
   }
   const operations = {
+    journalSnapshot: () => { const {state,saveId,runtime}=context(); if(!runtime.room.isReady())throw Error('Wait for the campaign to finish connecting.'); return globalThis.VoyageJournalCore.snapshot(state,saveId); },
     storageLocationContext,
     storageAreaPosition,
     storageCheckTransfer,

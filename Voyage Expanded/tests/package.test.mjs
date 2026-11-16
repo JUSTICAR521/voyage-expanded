@@ -8,9 +8,10 @@ test('the modular extension is independently loadable with an explicit runtime a
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.permissions, ['storage', 'unlimitedStorage', 'downloads']);
   const scripts = manifest.content_scripts.flatMap(entry => entry.js);
-  assert.deepEqual(scripts, ['inventory-core-main.js', 'bridge.js', 'time-bridge.js', 'expanded-core.js', 'expanded-settings.js', 'inventory-core.js', 'item-details.js', 'carried-tree.js', 'inventory-operations.js', 'inventory-draft.js', 'inventory-lock.js', 'inventory-panel.js', 'voyage-adapter.js', 'time-ui.js', 'time-panel.js', 'time-adapter.js']);
+  assert.deepEqual(scripts, ['inventory-core-main.js', 'journal-core-main.js', 'bridge.js', 'time-bridge.js', 'expanded-core.js', 'expanded-settings.js', 'inventory-core.js', 'item-details.js', 'carried-tree.js', 'inventory-operations.js', 'inventory-draft.js', 'inventory-lock.js', 'inventory-panel.js', 'voyage-adapter.js', 'time-ui.js', 'time-panel.js', 'journal-core.js', 'journal-panel.js', 'time-adapter.js']);
   assert.equal(new Set(scripts).size, scripts.length, 'Chromium deduplicates content script paths across execution worlds');
   assert.deepEqual(fs.readFileSync(new URL('inventory-core-main.js', root)), fs.readFileSync(new URL('inventory-core.js', root)), 'Run node build.mjs after changing inventory-core.js');
+  assert.deepEqual(fs.readFileSync(new URL('journal-core-main.js', root)), fs.readFileSync(new URL('journal-core.js', root)), 'Run node build.mjs after changing journal-core.js');
   for (const file of [...scripts, manifest.background.service_worker]) {
     const text = fs.readFileSync(new URL(file, root), 'utf8');
     assert.doesNotMatch(text, /npcList|addItemType|addTrait|healMarked/);
@@ -19,9 +20,9 @@ test('the modular extension is independently loadable with an explicit runtime a
   assert.ok(!manifest.externally_connectable);
 });
 
-test('Day & Time development exposes both modules and identifies its build',()=>{
+test('Journal development exposes both modules and identifies its build',()=>{
   const manifest=JSON.parse(fs.readFileSync(new URL('manifest.json',root),'utf8'));
-  assert.equal(manifest.version_name,'0.1.1 - Day & Time Development');
+  assert.equal(manifest.version_name,'0.1.1 - Journal Development');
   const settings=fs.readFileSync(new URL('expanded-settings.js',root),'utf8');
-  assert.match(settings,/Hide Native Inventory/);assert.match(settings,/\['time', 'Day & Time'/);
+  assert.match(settings,/Hide Native Inventory/);assert.match(settings,/\['time', 'Journal'/);
 });

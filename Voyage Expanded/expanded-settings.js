@@ -8,7 +8,7 @@
   const fields = [
     ['inventory', 'Inventory', 'Organize carried possessions and store items at campaign locations.'],
     ['hideNativeInventory', 'Hide Native Inventory', 'Hide Voyage’s Inventory tab while the Inventory module is enabled.'],
-    ['time', 'Day & Time', 'Edit the campaign day and time. Click the location text to open Map.']
+    ['time', 'Journal', 'Keep full turn history, write personal entries, and edit the campaign day and time.']
   ];
   const norm = text => String(text || '').replace(/\s+/g, ' ').trim();
   const controls = new Map(), hiddenMessages = new Set();
