@@ -12,8 +12,24 @@ The 16-file share folder and ZIP in `dist` are compared against the single sourc
 
 ## Browser checks and limits
 
-Edge checks for 0.1.0 using a disposable local fixture confirmed that Settings exposes only Inventory and Hide Native Inventory, Inventory can be turned off and back on, Hide Native Inventory becomes unavailable while Inventory is off, and the Inventory launcher opens the populated possessions window. No browser console warnings or errors were observed during those checks. The native day/location line remained present without the extension clock controls. These browser checks were not repeated for 0.1.1; the overlay change has automated coverage but still needs visual confirmation in the installed extension.
+Edge checks for 0.1.0 using a disposable local fixture confirmed that Settings exposes only Inventory and Hide Native Inventory, Inventory can be turned off and back on, Hide Native Inventory becomes unavailable while Inventory is off, and the Inventory launcher opens the populated possessions window. No browser console warnings or errors were observed during those checks. The native day/location line remained present without the extension clock controls.
 
 Earlier fixture checks covered native-inventory visibility, draft protection, cross-tab preferences, and retained possessions; those broader checks were not repeated for this packaging change.
 
-This release has not yet received a fresh unpacked-install test in live Voyage or a fresh Chrome browser test. Automated fixtures simulate browser storage and native commands; they do not prove live server behavior or support for every World and future Voyage version. No real campaign possessions were moved for this release. Try a dedicated test save first and export existing extension records before changing installations.
+### Live environment compatibility checks — 2026-11-16
+
+Tested in Edge after the user loaded 0.1.1, using a dedicated duplicated development campaign. No story turns were submitted. These checks cover the actions below, not every Inventory feature or World.
+
+| Voyage environment | Observed build | Result |
+| --- | --- | --- |
+| Alpha | `7321b7f83b55` | Inventory opened, an equipped sword was deposited, and the stored sword was retrieved and equipped successfully. Manual backup exports and the Hide Native Inventory switch also worked. |
+| Beta | `5117e76fc5f4` | The launcher appeared, but Voyage blocked the test save with “This save needs Voyage v37.22. Open it in Alpha to continue.” Inventory writes were not tested. |
+| Production | `5117e76fc5f4` | Voyage showed the same newer-version restriction. Inventory writes were not tested. |
+
+The Alpha sword deposit removed its negative Attunement modifier (9 → 10). Retrieval and equipping restored it (10 → 9). Exported character data after the round trip matched the starting character data field for field, including inventory quantities, equipment, attributes, and resources. Stored possessions returned to empty, no transfer was pending, and the native-inventory visibility preference was restored. Local history/revision metadata naturally records the completed transfers.
+
+The Applying Changes overlay was present during both operations and cleared on completion. Its uninterrupted lifetime between individual substeps is covered by automated tests; this live pass did not capture a continuous recording to measure flicker.
+
+Voyage Preview requires a particular preview URL or PR number rather than identifying one permanent build. It was excluded at the user's request. Production/Beta write compatibility and live cross-environment storage continuity remain unverified until a compatible fresh test campaign is available. Sixteen focused automated startup, cross-origin locking, and backup tests passed during this check; they do not replace those live tests.
+
+No fresh Chrome browser test was performed. Environment build IDs are point-in-time observations, not a promise of compatibility with future Voyage updates. Try a dedicated test save first and export existing extension records before changing installations.
