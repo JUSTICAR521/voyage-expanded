@@ -1,6 +1,6 @@
 # Voyage Expanded
 
-An independent community extension for **Voyage** in desktop **Chrome and Microsoft Edge**. Organize your equipment, manage containers, and leave possessions at campaign locations. This initial release includes Inventory.
+An independent community Chromium-based extension for **Voyage**.
 
 **Version 0.1.0 · Preview · MIT licensed**
 
