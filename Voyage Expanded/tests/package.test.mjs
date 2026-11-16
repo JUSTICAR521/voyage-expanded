@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const root = new URL('..', import.meta.url);
 test('the modular extension is independently loadable with an explicit runtime allowlist', () => {
   const manifest = JSON.parse(fs.readFileSync(new URL('manifest.json', root), 'utf8'));
-  assert.equal(manifest.name, 'Voyage Expanded'); assert.equal(manifest.version, '0.1.0');
+  assert.equal(manifest.name, 'Voyage Expanded'); assert.equal(manifest.version, '0.1.1');
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.permissions, ['storage', 'unlimitedStorage', 'downloads']);
   const scripts = manifest.content_scripts.flatMap(entry => entry.js);
@@ -17,4 +17,11 @@ test('the modular extension is independently loadable with an explicit runtime a
   }
   assert.ok(!manifest.content_scripts.some(entry => entry.css));
   assert.ok(!manifest.externally_connectable);
+});
+
+test('Day & Time development exposes both modules and identifies its build',()=>{
+  const manifest=JSON.parse(fs.readFileSync(new URL('manifest.json',root),'utf8'));
+  assert.equal(manifest.version_name,'0.1.1 - Day & Time Development');
+  const settings=fs.readFileSync(new URL('expanded-settings.js',root),'utf8');
+  assert.match(settings,/Hide Native Inventory/);assert.match(settings,/\['time', 'Day & Time'/);
 });

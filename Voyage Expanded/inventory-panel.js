@@ -974,7 +974,7 @@
           menuTrigger:(item,node,placement,organize)=>itemMenuButton(item,placement,true,`stored:${node.entry.id}`,()=>{
             const entry=node.entry;
             const actions=el('div','item-menu-actions');
-            const recover=button('Recover',()=>guarded(()=>requestTransfer({uuid:item.uuid,from:location},record.vault.revision)),'primary');recover.disabled=blocked||!access.allowed;
+            const recover=button('Recover',()=>guarded(()=>requestTransfer({uuid:item.uuid,from:location},record.vault.revision)));recover.disabled=blocked||!access.allowed;
             if(!access.allowed)recover.title=access.reason;else recover.title=node.children.length?'Recover this container and all its contents':'Recover the selected quantity';
             const remove=button('Delete',()=>guarded(()=>deletePossession('stored',{entry})),'destructive delete-item');
             remove.setAttribute('aria-label',`Delete ${C.itemName(item,record?.vault)} from ${name}`);remove.disabled=blocked||!!node.children.length;if(node.children.length)remove.title='Unpack this container before deleting it';
@@ -1007,6 +1007,8 @@
       });
     }
     async function applyDraft(){
+      const run = host.withApplyingChanges || (work => work());
+      return run(async()=>{
       const session=inventoryDraft,identity=session.baseRecord.vault.identity;
       try{
         await locked(identity,async()=>{
@@ -1025,6 +1027,7 @@
         if(pending?.draftApply){inventoryDraft=null;record=pending;snapshot=await readLive(identity);}
         throw error;
       }
+      });
     }
     async function close(){
       if(busy||!panel||closeConfirming)return;

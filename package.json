@@ -1,6 +1,6 @@
 {
   "name": "voyage-expanded",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Optional Inventory and Day & Time modules for Voyage",
   "license": "MIT",
