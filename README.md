@@ -2,9 +2,11 @@
 
 An independent community extension for **Voyage**, built for Chromium-based browsers. Organize your equipment, manage containers, and leave possessions at campaign locations. This initial release includes the Inventory module.
 
-**Version 0.1.0 · Preview · MIT licensed**
+**Next version: 0.1.1 (unreleased) · Preview · MIT licensed**
 
-[Download the release ZIP](https://github.com/JUSTICAR521/voyage-expanded/releases/tag/v0.1.0) · [User guide](<Voyage Expanded/share-docs/README.md>) · [Report an issue](https://github.com/JUSTICAR521/voyage-expanded/issues)
+[Download the published 0.1.0 ZIP](https://github.com/JUSTICAR521/voyage-expanded/releases/tag/v0.1.0) · [Current development guide](<Voyage Expanded/share-docs/README.md>) · [Published 0.1.0 guide](https://github.com/JUSTICAR521/voyage-expanded/blob/v0.1.0/Voyage%20Expanded/share-docs/README.md) · [Report an issue](https://github.com/JUSTICAR521/voyage-expanded/issues)
+
+The prepared 0.1.1 update changes documentation and version metadata only; Inventory behavior is unchanged from 0.1.0. It has not been published. Day & Time is not included in the published release or the current `main` branch.
 
 ## Inventory settings
 
@@ -30,9 +32,9 @@ Carried container contents remain ordinary carried items to Voyage. Deposited it
 
 ## Install
 
-1. Download **Voyage Expanded.zip** from [Releases](https://github.com/JUSTICAR521/voyage-expanded/releases) and extract it.
+1. Download **Voyage.Expanded.zip** from [Releases](https://github.com/JUSTICAR521/voyage-expanded/releases) and extract it.
 2. Keep the extracted **Voyage Expanded** folder in a permanent location.
-3. Open `chrome://extensions` or `edge://extensions` and enable **Developer mode**.
+3. Open your browser's Extensions page (for example, `chrome://extensions` or `edge://extensions`) and enable **Developer mode**.
 4. Choose **Load unpacked** and select the folder directly containing `manifest.json`.
 5. Allow Voyage site access if prompted, then refresh Voyage.
 
@@ -42,8 +44,7 @@ For future updates, replace the files **inside the same installed folder**, relo
 
 ## Compatibility and access
 
-You need the campaign's **State Editor** permission to save changes. The extension reads the current World's categories, tiers, equipment slots, party, and locations. Compatibility still depends on Voyage's current UI and state format. Start with a test copy of your campaign.
-
+The extension targets desktop Chromium-based browsers. You need the campaign's **State Editor** permission to save changes. The extension reads the current World's categories, tiers, equipment slots, party, and locations. Compatibility still depends on Voyage's current UI and state format. Start with a test copy of your campaign.
 
 The Inventory release is checked with automated tests and a disposable browser fixture. This is a preview, not a claim of support for every World, every Voyage environment, mobile browsers, or future platform updates. See [validation notes](VALIDATION.md) for the tested scope.
 

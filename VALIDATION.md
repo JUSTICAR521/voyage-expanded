@@ -1,6 +1,6 @@
-# Validation for 0.1.0
+# Validation for 0.1.1
 
-Checked on 2026-11-16. The initial public package includes Inventory only. Day & Time development is preserved on a separate branch and is not loaded or packaged.
+Checked on 2026-11-16. This documentation-only update includes Inventory only. Day & Time development is preserved on a separate branch and is not loaded or packaged. Runtime JavaScript is byte-identical to 0.1.0; the packaged changes are the user guide and manifest version metadata.
 
 ## Automated checks
 
@@ -12,7 +12,7 @@ The 16-file share folder and ZIP in `dist` are compared against the single sourc
 
 ## Browser checks and limits
 
-Fresh Edge checks using a disposable local fixture confirmed that Settings exposes only Inventory and Hide Native Inventory, Inventory can be turned off and back on, Hide Native Inventory becomes unavailable while Inventory is off, and the Inventory launcher opens the populated possessions window. No browser console warnings or errors were observed during these checks. The native day/location line remains present without the extension clock controls.
+Edge checks for 0.1.0 using a disposable local fixture confirmed that Settings exposes only Inventory and Hide Native Inventory, Inventory can be turned off and back on, Hide Native Inventory becomes unavailable while Inventory is off, and the Inventory launcher opens the populated possessions window. No browser console warnings or errors were observed during those checks. The native day/location line remained present without the extension clock controls. These browser checks were not repeated for the documentation-only 0.1.1 update.
 
 Earlier fixture checks covered native-inventory visibility, draft protection, cross-tab preferences, and retained possessions; those broader checks were not repeated for this packaging change.
 

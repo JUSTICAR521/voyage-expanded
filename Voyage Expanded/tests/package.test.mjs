@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const root = new URL('..', import.meta.url);
 test('the modular extension is independently loadable with an explicit runtime allowlist', () => {
   const manifest = JSON.parse(fs.readFileSync(new URL('manifest.json', root), 'utf8'));
-  assert.equal(manifest.name, 'Voyage Expanded'); assert.equal(manifest.version, '0.1.0');
+  assert.equal(manifest.name, 'Voyage Expanded'); assert.equal(manifest.version, '0.1.1');
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.permissions, ['storage', 'unlimitedStorage', 'downloads']);
   const scripts = manifest.content_scripts.flatMap(entry => entry.js);

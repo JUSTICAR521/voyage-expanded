@@ -1,15 +1,17 @@
 # Voyage Expanded
 
-**Version 0.1.0 · Preview for desktop Chrome and Microsoft Edge**
+**Version 0.1.1 · Preview · MIT licensed**
 
-Voyage Expanded adds inventory organization and location storage to Voyage. It is an independent community extension, not an official Voyage product. An API key, a separate account, and build tools are not needed to use it.
+An independent community extension for **Voyage**, built for Chromium-based browsers. Organize your equipment, manage containers, and leave possessions at campaign locations. This initial release includes the Inventory module.
+
+Version 0.1.1 updates documentation and version metadata only; Inventory behavior is unchanged from 0.1.0. Day & Time is not included. This is not an official Voyage product. An API key, a separate account, and build tools are not needed to use it.
 
 Source, releases, and issues: [github.com/JUSTICAR521/voyage-expanded](https://github.com/JUSTICAR521/voyage-expanded).
 
 ## Install and configure Inventory
 
-1. Extract `Voyage Expanded.zip` and keep its **Voyage Expanded** folder somewhere permanent.
-2. Open `chrome://extensions` or `edge://extensions`.
+1. Extract the release download, `Voyage.Expanded.zip`, and keep its **Voyage Expanded** folder somewhere permanent.
+2. Open your browser's Extensions page (for example, `chrome://extensions` or `edge://extensions`).
 3. Turn on **Developer mode**, choose **Load unpacked**, and select the folder directly containing `manifest.json`.
 4. Allow Voyage site access if prompted, then refresh your Voyage tab.
 5. Open **Settings → Voyage Expanded** to configure Inventory.
@@ -81,7 +83,7 @@ If Apply is interrupted, use **Review unfinished changes** before retrying. It c
 
 ## Backups and multiple campaigns
 
-Records are separate for each campaign and character. Chrome, Edge, different profiles, and separately loaded extension folders each have their own data. **There is no cloud sync or automatic backup download.** Export Backup is manual and exports the current campaign/character record.
+Records are separate for each campaign and character. Different browsers, browser profiles, and separately loaded extension installations each maintain their own data. **There is no cloud sync or automatic backup download.** Export Backup is manual and exports the current campaign/character record.
 
 1. Apply or discard drafts and resolve unfinished operations.
 2. Click **Export Backup** and wait for the download to finish. Files appear under **Downloads / Voyage Inventory**.
