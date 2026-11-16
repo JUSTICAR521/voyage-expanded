@@ -42,7 +42,7 @@ For future updates, replace the files **inside the same installed folder**, relo
 
 ## Compatibility and access
 
-You need the campaign's **State Editor** permission to save changes. The extension reads the current World's categories, tiers, equipment slots, party, and locations; it is not tied to Larion. Compatibility still depends on Voyage's current UI and state format. Start with a test copy of your campaign.
+You need the campaign's **State Editor** permission to save changes. The extension reads the current World's categories, tiers, equipment slots, party, and locations. Compatibility still depends on Voyage's current UI and state format. Start with a test copy of your campaign.
 
 
 The Inventory release is checked with automated tests and a disposable browser fixture. This is a preview, not a claim of support for every World, every Voyage environment, mobile browsers, or future platform updates. See [validation notes](VALIDATION.md) for the tested scope.
@@ -60,6 +60,8 @@ Voyage Expanded/         Single editable source, tests, and documentation
 dist/Voyage Expanded/    Generated release folder (not tracked by Git)
 dist/Voyage Expanded.zip Generated release ZIP (not tracked by Git)
 ```
+
+The `dist` folder is created when you run `npm run build`; it is not included in a fresh repository checkout.
 
 Load `Voyage Expanded` unpacked to work from this checkout. Git branches select the code being developed; there is no separate Dev folder or manifest. For regular play, use a published release in a permanent folder outside the checkout, so switching branches cannot change that installation. Export inventory records before switching installations because separate installations have separate browser storage.
 

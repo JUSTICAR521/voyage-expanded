@@ -29,7 +29,7 @@ The browser-toolbar entry has no popup. File-URL and private-browsing access are
 
 You need access to your campaign's **State Editor** to apply changes. The extension uses your existing Voyage session; it does not grant host or moderator permissions. Start with a duplicated test campaign.
 
-The code reads categories, tiers, equipment slots, and locations from the current World. It is not tied to Larion, but relies on Voyage's UI and state structure. A matching URL does not guarantee every World, Production/Beta/Alpha environment, or future patch will work. This package targets desktop Chromium browsers, not iOS/Safari or a native Voyage app. Remote access to a supported PC browser still runs the PC extension.
+The code reads categories, tiers, equipment slots, and locations from the current World. It relies on Voyage's UI and state structure. A matching URL does not guarantee every World, Production/Beta/Alpha environment, or future patch will work. This package targets desktop Chromium browsers, not iOS/Safari or a native Voyage app. Remote access to a supported PC browser still runs the PC extension.
 
 ## Organize carried items
 
