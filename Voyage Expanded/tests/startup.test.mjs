@@ -31,7 +31,7 @@ function startup(rules, page = 'https://alpha.voyage.io/play?saveId=123') {
       injected.add(file);
       // Exercise the real panel's startup contract with a launcher adapter below.
       // Native DOM mounting remains a browser integration check.
-      if (!['voyage-adapter.js', 'time-adapter.js'].includes(file)) vm.runInContext(fs.readFileSync(new URL(file, root), 'utf8'), worlds.get(name), { filename: file });
+      if (file !== 'voyage-adapter.js') vm.runInContext(fs.readFileSync(new URL(file, root), 'utf8'), worlds.get(name), { filename: file });
     }
   }
   let mounts = 0;

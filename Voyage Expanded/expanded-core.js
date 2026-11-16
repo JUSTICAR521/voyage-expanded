@@ -1,7 +1,7 @@
 // Shared module preferences and lifecycle. Campaign records are never changed here.
 (() => {
   'use strict';
-  const defaults = Object.freeze({ inventory: true, hideNativeInventory: true, time: true });
+  const defaults = Object.freeze({ inventory: true, hideNativeInventory: true });
   const keys = Object.freeze(Object.fromEntries(Object.keys(defaults).map(name => [name, `voyage-expanded:settings:v1:${name}`])));
   function create(storage) {
     let values = { ...defaults }, ready = false, saving = false, error = '', revision = 0, chain = Promise.resolve();
@@ -72,7 +72,7 @@
       });
     }
     function register(name, api) {
-      if (!['inventory', 'time'].includes(name) || modules.has(name)) throw new Error('Invalid or duplicate Voyage Expanded module.');
+      if (name !== 'inventory' || modules.has(name)) throw new Error('Invalid or duplicate Voyage Expanded module.');
       modules.set(name, { api, active: false }); refresh();
     }
     return Object.freeze({ state, loaded, set, register, refresh,

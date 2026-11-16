@@ -4,7 +4,7 @@
   "short_name": "Expanded",
   "version": "0.1.0",
   "version_name": "0.1.0 - Preview",
-  "description": "Optional Inventory and Day & Time modules for Voyage, with containers and location storage.",
+  "description": "Inventory organization for Voyage, with containers, equipment controls, and location storage.",
   "permissions": [
     "storage",
     "unlimitedStorage",
@@ -21,8 +21,7 @@
       ],
       "js": [
         "inventory-core-main.js",
-        "bridge.js",
-        "time-bridge.js"
+        "bridge.js"
       ],
       "world": "MAIN",
       "run_at": "document_idle"
@@ -42,10 +41,7 @@
         "inventory-draft.js",
         "inventory-lock.js",
         "inventory-panel.js",
-        "voyage-adapter.js",
-        "time-ui.js",
-        "time-panel.js",
-        "time-adapter.js"
+        "voyage-adapter.js"
       ],
       "run_at": "document_idle"
     }

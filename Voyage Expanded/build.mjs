@@ -6,7 +6,7 @@ import { deflateRawSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
 const root = path.dirname(fileURLToPath(import.meta.url));
 const manifest = JSON.parse(await fs.readFile(path.join(root,'manifest.json'),'utf8'));
-const runtime = ['inventory-core-main.js','bridge.js','time-bridge.js','expanded-core.js','expanded-settings.js','inventory-core.js','item-details.js','carried-tree.js','inventory-operations.js','inventory-draft.js','inventory-lock.js','inventory-panel.js','voyage-adapter.js','time-ui.js','time-panel.js','time-adapter.js','inventory-worker.js'];
+const runtime = ['inventory-core-main.js','bridge.js','expanded-core.js','expanded-settings.js','inventory-core.js','item-details.js','carried-tree.js','inventory-operations.js','inventory-draft.js','inventory-lock.js','inventory-panel.js','voyage-adapter.js','inventory-worker.js'];
 const declared = [...new Set([...manifest.content_scripts.flatMap(entry=>entry.js),manifest.background.service_worker])].sort();
 if(JSON.stringify(declared)!==JSON.stringify([...runtime].sort()))throw Error('Review the runtime allowlist before packaging.');
 await fs.copyFile(path.join(root,'inventory-core.js'),path.join(root,'inventory-core-main.js'));

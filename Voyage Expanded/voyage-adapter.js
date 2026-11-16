@@ -16,10 +16,8 @@
   const ownElement = node => !!node?.closest?.('[data-voyage-storage]');
   const norm = value => String(value || '').replace(/\s+/g, ' ').trim();
   const visible = node => !!node && node.getBoundingClientRect().width > 0 && !node.closest('[hidden], [aria-hidden="true"]');
-  const timeWindowOpen = () => !!document.querySelector('[data-voyage-time="clock"], [data-voyage-time="save-cover"]');
   function assertAvailable() {
     if (globalThis.VoyageExpanded && !globalThis.VoyageExpanded.isActive('inventory')) throw new Error('Enable Inventory in Settings → Voyage Expanded first.');
-    if (timeWindowOpen()) throw new Error('Close Day & Time and wait for its changes to finish before using Inventory. Your inventory draft has been kept.');
   }
   function placeLauncher(node, anchor) {
     if (node.previousElementSibling !== anchor) anchor.after(node);
@@ -51,7 +49,7 @@
       control.setAttribute('data-voyage-storage', kind); control.setAttribute('aria-haspopup', 'dialog');
       control.setAttribute('aria-label', kind === 'storage-launch' ? 'Open inventory' : 'Open inventory from panel');
       control.title = 'Inventory';
-      control.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); if (!timeWindowOpen()) open(control); });
+      control.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); open(control); });
       return { button: control, node: control, signature: '', group: null };
     }
     function remove(entry) { entry?.node.remove(); entry?.group?.removeAttribute('data-voyage-storage-nav-group'); }
@@ -68,7 +66,7 @@
         // leave Character blank. Keep React's DOM intact; hide presentation only.
         if(native.getAttribute('aria-selected')==='true'&&!stats.disabled) {
           stats.click();
-          if(!isOpen()&&!timeWindowOpen()&&!visible(document.querySelector(UI.settingsSearch)))open(navigation?.button||native);
+          if(!isOpen()&&!visible(document.querySelector(UI.settingsSearch)))open(navigation?.button||native);
         }
       }
       for(const node of hiddenNative)if(!hidden.has(node))node.removeAttribute('data-voyage-storage-native-hidden');
@@ -78,7 +76,7 @@
       if(!onPlayPage()||!enabled||!hideNative)return;
       const target=event.target?.closest?.('button');
       if(!target||ownElement(target)||!/^Open .+ in your inventory$/.test(norm(target.getAttribute('aria-label')||target.textContent)))return;
-      event.preventDefault();event.stopImmediatePropagation();if(!timeWindowOpen())open(target);
+      event.preventDefault();event.stopImmediatePropagation();open(target);
     };
     function update(entry, template, mode, structure = template) {
       const wrapperClass = structure.firstElementChild?.className || '';
@@ -102,9 +100,7 @@
       }
       const expanded = String(isOpen());
       if (entry.button.getAttribute('aria-expanded') !== expanded) entry.button.setAttribute('aria-expanded', expanded);
-      const blocked = timeWindowOpen();
-      if (entry.button.disabled !== blocked) entry.button.disabled = blocked;
-      const title = blocked ? 'Close Day & Time before opening Inventory' : 'Inventory';
+      const title = 'Inventory';
       if (entry.button.title !== title) entry.button.title = title;
     }
     function sync() {

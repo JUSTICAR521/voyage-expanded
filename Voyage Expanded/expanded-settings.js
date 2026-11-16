@@ -1,4 +1,4 @@
-// This Settings entry belongs to the shell, so it remains available with both modules off.
+// This Settings entry belongs to the shell, so it remains available with Inventory off.
 (() => {
   'use strict';
   const core = globalThis.VoyageExpanded;
@@ -7,8 +7,7 @@
   const searchSelector = 'input[placeholder="Search settings"]';
   const fields = [
     ['inventory', 'Inventory', 'Organize carried possessions and store items at campaign locations.'],
-    ['hideNativeInventory', 'Hide Native Inventory', 'Hide Voyage’s Inventory tab while the Inventory module is enabled.'],
-    ['time', 'Day & Time', 'Edit the campaign day and time. Click the location text to open Map.']
+    ['hideNativeInventory', 'Hide Native Inventory', 'Hide Voyage’s Inventory tab while the Inventory module is enabled.']
   ];
   const norm = text => String(text || '').replace(/\s+/g, ' ').trim();
   const controls = new Map(), hiddenMessages = new Set();

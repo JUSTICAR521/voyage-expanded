@@ -2,7 +2,7 @@
   "name": "voyage-expanded",
   "version": "0.1.0",
   "private": true,
-  "description": "Optional Inventory and Day & Time modules for Voyage",
+  "description": "Inventory organization and location storage for Voyage",
   "license": "MIT",
   "engines": { "node": ">=24" },
   "scripts": {
