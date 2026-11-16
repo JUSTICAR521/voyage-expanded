@@ -46,7 +46,9 @@ For future updates, replace the files **inside the same installed folder**, relo
 
 The extension targets desktop Chromium-based browsers. You need the campaign's **State Editor** permission to save changes. The extension reads the current World's categories, tiers, equipment slots, party, and locations. Compatibility still depends on Voyage's current UI and state format. Start with a test copy of your campaign.
 
-The Inventory release is checked with automated tests and a disposable browser fixture. Compatibility is not guaranteed for every World, every Voyage environment, mobile browsers, or future platform updates. See [validation notes](VALIDATION.md) for the tested scope.
+One installation covers Voyage's **Production, Beta, Alpha, and Preview** addresses. There is no separate extension to install when changing environments. Preview builds and future Voyage updates can change the UI or state format; URL coverage alone does not establish live compatibility. See [validation notes](VALIDATION.md) for the automated and live checks completed so far.
+
+**Switching environments with a single save may or may not work properly.** Within the same browser profile and extension installation, Inventory uses the same local record for the same campaign and character across environments. Voyage may open an older or incompatible state, while extension storage does not automatically rewind with it. Finish any pending changes and export a backup before switching. Avoid editing the same save in multiple environments at once. Existing checks can block transfers when an older or mismatched state is detected; they do not guarantee a successful transition.
 
 ## Privacy and permissions
 

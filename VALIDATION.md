@@ -8,6 +8,8 @@ Node.js 24.22.1 on Windows: **321 tests, 321 passed, 0 failed, 0 skipped**. Five
 
 Coverage includes inventory planning, filled/nested container transfers, equipment effects and draft application, stack operations, save/character separation, backup imports, stale-state rejection, interrupted-operation recovery, worker locking, startup on Voyage navigation routes, preferences, cross-tab changes, and shutdown during draft completion. Saved clock preferences cannot activate an unshipped module.
 
+The suite was rerun after extending startup coverage to `preview.voyage.io` and `pr-123.preview.voyage.io`, alongside Production, Beta, and Alpha: all 321 tests passed. Both script worlds initialize on the tested entry routes for these hosts. The existing manifest already covers all these addresses, so no runtime or permission change was needed. This is simulated startup coverage, not a live Preview test or a guarantee that saves can move between environments. The repository and packaged guides now explicitly disclaim that switching environments with a single save may or may not work properly.
+
 The 16-file share folder and ZIP in `dist` are compared against the single source folder byte for byte. Source and packaged manifests are identical. Package checks require Inventory-only startup and settings. Git branches handle development; generated release outputs are not tracked. The ZIP excludes development fixtures, tests, local evidence, credentials, and personal campaign data.
 
 ## Browser checks and limits
