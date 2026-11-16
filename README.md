@@ -2,7 +2,7 @@
 
 An independent community extension for **Voyage**, built for Chromium-based browsers. Organize your equipment, manage containers, and leave possessions at campaign locations. This initial release includes the Inventory module.
 
-**Next version: 0.1.1 (unreleased) · Preview · MIT licensed**
+**Next version: 0.1.1 (unreleased) · MIT licensed**
 
 [Download the published 0.1.0 ZIP](https://github.com/JUSTICAR521/voyage-expanded/releases/tag/v0.1.0) · [Current development guide](<Voyage Expanded/share-docs/README.md>) · [Published 0.1.0 guide](https://github.com/JUSTICAR521/voyage-expanded/blob/v0.1.0/Voyage%20Expanded/share-docs/README.md) · [Report an issue](https://github.com/JUSTICAR521/voyage-expanded/issues)
 
@@ -46,7 +46,7 @@ For future updates, replace the files **inside the same installed folder**, relo
 
 The extension targets desktop Chromium-based browsers. You need the campaign's **State Editor** permission to save changes. The extension reads the current World's categories, tiers, equipment slots, party, and locations. Compatibility still depends on Voyage's current UI and state format. Start with a test copy of your campaign.
 
-The Inventory release is checked with automated tests and a disposable browser fixture. This is a preview, not a claim of support for every World, every Voyage environment, mobile browsers, or future platform updates. See [validation notes](VALIDATION.md) for the tested scope.
+The Inventory release is checked with automated tests and a disposable browser fixture. Compatibility is not guaranteed for every World, every Voyage environment, mobile browsers, or future platform updates. See [validation notes](VALIDATION.md) for the tested scope.
 
 ## Privacy and permissions
 

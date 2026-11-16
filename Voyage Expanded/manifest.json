@@ -3,7 +3,6 @@
   "name": "Voyage Expanded",
   "short_name": "Expanded",
   "version": "0.1.1",
-  "version_name": "0.1.1 - Preview",
   "description": "Inventory organization for Voyage, with containers, equipment controls, and location storage.",
   "permissions": [
     "storage",
