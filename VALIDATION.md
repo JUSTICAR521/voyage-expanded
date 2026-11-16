@@ -1,5 +1,13 @@
 # Day & Time development validation
 
+## Expanded time dropdown — 2026-11-16
+
+The time-of-day list now uses a popover so it can extend beyond the clock dialog. Its maximum height is 384 px, limited by the available viewport space; it opens above the field when that provides more room. Scrolling the list remains available on compact screens, while scrolling its surrounding page/dialog or resizing closes it.
+
+The build succeeded and all **337 automated tests passed, 0 failed, 0 skipped**. In the local Edge fixture, all **nine choices** (eight presets plus Custom) fit without scrolling at the default desktop size. At **390 × 500**, the list stayed within the viewport and scrolled to reveal Custom using End. Preset selection with Home/Enter, Custom selection and its input field, outside-click dismissal, Escape closing the list before the dialog, and resize dismissal were verified. The fixture recorded no saves or escaped game shortcuts, and no live campaign was changed.
+
+## Integration with main
+
 Checked on 2026-11-16 while integrating `main` at `6a242cd` into `development/day-time` at `937802e`. The development build is version **0.1.1 - Day & Time Development** and includes both Inventory and Day & Time. All four Day & Time runtime files are unchanged from the development branch; the shared shell, packaging, and tests preserve their registration and preferences alongside the newer Inventory and Settings changes.
 
 Node.js 24.22.1 on Windows: the build succeeded and **337 tests passed, 0 failed, 0 skipped**. Coverage includes both module lifecycles, clock validation and stale-state guards, the latest Inventory batch-overlay checks, and simulated Production/Beta/Alpha startup. The **20-file** generated folder and ZIP match the declared runtime and guide byte for byte. The generated Inventory core copy also matches its source.
