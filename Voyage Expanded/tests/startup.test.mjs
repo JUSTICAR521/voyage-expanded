@@ -67,7 +67,7 @@ test('play-only injection reproduces missing startup when a tab enters through S
 });
 
 test('both execution worlds initialize on Voyage entry pages before in-page game navigation', () => {
-  for (const host of ['voyage.io', 'alpha.voyage.io', 'beta.voyage.io', 'preview.voyage.io', 'pr-123.preview.voyage.io']) {
+  for (const host of ['voyage.io', 'alpha.voyage.io', 'beta.voyage.io']) {
     for (const path of ['/', '/saves?sort=updated', '/world/example', '/play?saveId=123', '/play/save?saveId=123']) {
       const result = startup(manifest.content_scripts, `https://${host}${path}`);
       assert.deepEqual(result.skipped, []);

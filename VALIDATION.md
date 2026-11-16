@@ -8,7 +8,7 @@ Node.js 24.22.1 on Windows: **321 tests, 321 passed, 0 failed, 0 skipped**. Five
 
 Coverage includes inventory planning, filled/nested container transfers, equipment effects and draft application, stack operations, save/character separation, backup imports, stale-state rejection, interrupted-operation recovery, worker locking, startup on Voyage navigation routes, preferences, cross-tab changes, and shutdown during draft completion. Saved clock preferences cannot activate an unshipped module.
 
-The suite was rerun after extending startup coverage to `preview.voyage.io` and `pr-123.preview.voyage.io`, alongside Production, Beta, and Alpha: all 321 tests passed. Both script worlds initialize on the tested entry routes for these hosts. The existing manifest already covers all these addresses, so no runtime or permission change was needed. This is simulated startup coverage, not a live Preview test or a guarantee that saves can move between environments. The repository and packaged guides now explicitly disclaim that switching environments with a single save may or may not work properly.
+The startup matrix covers Production, Beta, and Alpha. Both script worlds initialize on the tested entry routes for these hosts. The manifest already covers these addresses, so no runtime or permission change was needed. Preview was removed from the ongoing test matrix at the user's request. Simulated startup coverage is not a guarantee that saves can move between environments. The repository and packaged guides explicitly disclaim that switching environments with a single save may or may not work properly.
 
 The 16-file share folder and ZIP in `dist` are compared against the single source folder byte for byte. Source and packaged manifests are identical. Package checks require Inventory-only startup and settings. Git branches handle development; generated release outputs are not tracked. The ZIP excludes development fixtures, tests, local evidence, credentials, and personal campaign data.
 
@@ -49,3 +49,39 @@ Beta repeatedly reopened turn 0, including after using Voyage's official environ
 Eleven focused startup and cross-origin locking tests passed again during this follow-up. The environment preference was restored to Alpha. No extension runtime files changed and no release was published.
 
 No fresh Chrome browser test was performed. Environment build IDs are point-in-time observations, not a promise of compatibility with future Voyage updates. Try a dedicated test save first and export existing extension records before changing installations.
+
+### Independent Production, Beta, and Alpha campaigns — 2026-11-16
+
+Created a separate disposable campaign directly in each environment using the same Larion version 249, Brennan preset, and Join the League of Adventurers start. Each campaign advanced through one equipment-check story action before inventory writes. No campaign was moved between environments during this pass. Tests used the installed 0.1.1 extension in Edge. Existing personal campaigns were not modified.
+
+The complete automated suite passed: **321 passed, 0 failed, 0 skipped**. This is one shared local suite, supplemented by the live matrix below; it is not 321 live server tests per environment.
+
+| Live workflow | Production | Beta | Alpha |
+| --- | --- | --- | --- |
+| Launcher, current character/area, inventory loading | Pass | Pass | Pass |
+| Deposit an equipped sword; remove its equipment effect | Pass | Pass | Pass |
+| Equip a stored sword; automatically retrieve and equip | Pass | Pass | Pass |
+| Split coins; drag coins and sword into a container | Pass | Pass | Pass |
+| Deposit and recover the filled container, preserving contents | Pass | Pass | Pass |
+| Unpack contents, remove container designation, drag-merge coins | Pass | Pass | Pass |
+| Item details, staged display rename/search, Cancel and Discard | Pass | Pass | Pass |
+| Partial coin deposit/recovery and stored-item deletion | Pass | Pass | Pass |
+| Export/import, older-backup warning with current turn, confirmed restoration | Pass | Pass | Pass |
+| Inventory module off/on and native-inventory visibility toggle | Pass | Pass | Pass |
+| Reload, export, and compare final character with its baseline | Pass | Pass | Pass |
+
+The preset has no backpack, so its unequipped Linen Tunic was temporarily designated as the test container. It held 10 coins and the equipped sword. Depositing the filled container changed carried quantity from 69 to 57 and stored quantity to 12, including the container itself. Attunement changed from 12 to 13 because the sword's negative modifier was removed. Recovering the container preserved its hierarchy and left the sword unequipped; explicitly equipping it restored Attunement to 12. Removing a filled container designation was disabled until it was unpacked.
+
+Backup restoration was tested independently in each campaign: deposit 10 coins, export, delete 5 stored coins, import the earlier export, review its older-backup warning, continue, and retrieve the restored coins in two batches of 5. The warning displayed both timestamps and Current Turn 1. These imports targeted each campaign's own backup; cross-save import was not repeated live.
+
+Final exports after reload matched each campaign's settled turn-1 character baseline field for field, including all inventory entries, quantities, equipment, attributes, and resources. Each ended with **69 carried units, 0 stored units, no pending transfer, and no pending draft application**. Extension history/revision metadata naturally changed. Inventory and Hide Native Inventory were left enabled.
+
+Observed limitations and transient behavior:
+
+- A stale extension context was resolved by refreshing the test tabs. No runtime fix was needed.
+- Beta's initial story action took longer to finish. An early write was correctly refused by the busy-phase guard; its draft was discarded. The final baseline was taken after generation settled, and subsequent writes passed. No guard was bypassed.
+- Native-tab visibility updates briefly lagged settings changes/panel creation in Production and Beta. After reconciliation, the native tab was hidden as configured. An immediate snapshot can precede that update.
+- This pass verifies independent campaigns, not migration of one save between environments. The earlier same-save Beta stale-state refusal remains a separate finding.
+- Live coverage is Edge with one World/preset. Nested-container edge cases, interrupted requests, concurrent edits, malformed imports, remote-location restrictions, and other failure paths remain automated coverage rather than newly reproduced live cases. Persisted renaming was not retested; this pass exercised a staged rename and Discard. No new Chrome, iOS, or Preview test was performed.
+
+Private export comparisons, test output, and screenshots are retained locally and excluded from the repository/package. No extension runtime change or new release resulted from this pass.
