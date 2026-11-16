@@ -20,7 +20,7 @@
     .quantity-control{display:inline-grid;grid-template-columns:minmax(0,1fr) 24px;width:88px;height:36px;border:1px solid var(--vt-border);border-radius:18px;background:transparent;overflow:hidden}.quantity-control:focus-within{outline:2px solid var(--vt-accent);outline-offset:2px}.quantity-control input{width:100%;min-width:0;border:0;border-radius:0;background:transparent;outline:none;padding:7px 10px;text-align:center;font-size:12px}.quantity-control input:disabled{color:var(--vt-muted);opacity:.5}.quantity-steps{display:grid;grid-template-rows:1fr 1fr;border-left:1px solid var(--vt-border)}
     button.quantity-step{display:flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:0;min-width:0;min-height:0;line-height:1;background:transparent;color:var(--color-voyage-border-medium,#484848)}button.quantity-step+button.quantity-step{border-top:1px solid var(--vt-border)}button.quantity-step:hover:not(:disabled){background:var(--vt-hover);color:var(--vt-text)}button.quantity-step:focus-visible{outline-offset:-2px}.quantity-arrow{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent}.quantity-arrow.up{border-bottom:4px solid currentColor}.quantity-arrow.down{border-top:4px solid currentColor}
     .period-picker{position:relative}.period-select{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:transparent;padding:7px 16px}.period-select:hover:not(:disabled){background:var(--color-voyage-surface-subtle-hover,#191e21)}.period-value{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.period-arrow{flex:none;width:7px;height:7px;border-right:1.5px solid var(--vt-muted);border-bottom:1.5px solid var(--vt-muted);transform:translateY(-2px) rotate(45deg)}.period-select[aria-expanded=true] .period-arrow{transform:translateY(2px) rotate(225deg)}
-    .period-options{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:5;margin:0;padding:5px;max-height:208px;overflow:auto;border:1px solid var(--color-voyage-modal-border-subtle,#383838);border-radius:12px;background:var(--vt-panel);box-shadow:0 10px 28px #0009;scrollbar-width:thin;scrollbar-color:var(--color-voyage-border-medium,#484848) transparent}.period-options[hidden]{display:none}.period-option{display:flex;align-items:center;gap:9px;min-height:36px;padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer;overflow-wrap:anywhere}.period-option.active{background:var(--vt-hover);color:var(--vt-text)}.period-option[aria-selected=true]{color:var(--vt-accent)}.period-check{width:12px;flex:none;color:var(--vt-accent)}
+    .period-options{position:fixed;inset:auto;margin:0;padding:5px;max-height:384px;overflow:auto;overscroll-behavior:contain;border:1px solid var(--color-voyage-modal-border-subtle,#383838);border-radius:12px;background:var(--vt-panel);color:inherit;box-shadow:0 10px 28px #0009;scrollbar-width:thin;scrollbar-color:var(--color-voyage-border-medium,#484848) transparent}.period-options[hidden]{display:none}.period-option{display:flex;align-items:center;gap:9px;min-height:36px;padding:8px 10px;border-radius:8px;font-size:13px;cursor:pointer;overflow-wrap:anywhere}.period-option.active{background:var(--vt-hover);color:var(--vt-text)}.period-option[aria-selected=true]{color:var(--vt-accent)}.period-check{width:12px;flex:none;color:var(--vt-accent)}
     label{display:grid;gap:6px}input::placeholder{color:var(--vt-muted);opacity:1}.period-value.placeholder{color:var(--vt-muted)}
   `;
   function applyNativeTheme(node) {
@@ -76,6 +76,8 @@
     const arrow = el('span', 'period-arrow'); arrow.setAttribute('aria-hidden', 'true');
     const display = el('span', 'period-value'); trigger.append(display, arrow);
     list.id = listId; list.setAttribute('role', 'listbox'); list.setAttribute('aria-labelledby', trigger.id); list.hidden = true;
+    // The top layer lets the options extend beyond the scrollable clock dialog.
+    list.setAttribute('popover', 'manual');
     let opened = false, active = 0, typed = '', typedAt = 0, options = [], entries = [], currentValue = value;
     function sync() {
       const selected = entries.find(entry => entry.value === currentValue);
@@ -116,23 +118,30 @@
     }
     const outside = event => { if (!event.composedPath().includes(node)) setOpen(false); };
     const resized = () => setOpen(false);
+    const scrolled = event => { if (!event.composedPath().includes(list)) setOpen(false); };
     function setOpen(open) {
       const wasOpen = opened;
       opened = open && !trigger.disabled && !!entries.length;
       if (opened && activePicker !== node) { activePicker?.closePicker(); activePicker = node; }
       list.hidden = !opened; trigger.setAttribute('aria-expanded', String(opened));
       if (opened) {
-        const rect = trigger.getBoundingClientRect(), bounds = node.closest('dialog')?.getBoundingClientRect();
-        const below = Math.max(0, Math.min(innerHeight, bounds?.bottom ?? innerHeight) - rect.bottom - 12);
-        const above = Math.max(0, rect.top - Math.max(0, bounds?.top ?? 0) - 12);
-        const up = below < 160 && above > below;
-        list.style.top = up ? 'auto' : 'calc(100% + 6px)'; list.style.bottom = up ? 'calc(100% + 6px)' : 'auto';
-        list.style.maxHeight = `${Math.min(208, up ? above : below)}px`;
+        const rect = trigger.getBoundingClientRect();
+        const width = Math.min(rect.width, Math.max(0, innerWidth - 24));
+        list.style.width = `${width}px`;
+        list.style.left = `${Math.max(12, Math.min(rect.left, innerWidth - width - 12))}px`;
+        if (!wasOpen) list.showPopover();
+        const below = Math.max(0, innerHeight - rect.bottom - 18), above = Math.max(0, rect.top - 18);
+        const desiredHeight = Math.min(384, list.scrollHeight + 2);
+        const up = below < desiredHeight && above > below;
+        list.style.top = up ? 'auto' : `${rect.bottom + 6}px`;
+        list.style.bottom = up ? `${innerHeight - rect.top + 6}px` : 'auto';
+        list.style.maxHeight = `${Math.min(384, up ? above : below)}px`;
         highlight(active); revealActive();
-      } else { trigger.removeAttribute('aria-activedescendant'); if (activePicker === node) activePicker = null; }
+      } else { if (wasOpen) list.hidePopover(); trigger.removeAttribute('aria-activedescendant'); if (activePicker === node) activePicker = null; }
       if (opened !== wasOpen) {
         const method = opened ? 'addEventListener' : 'removeEventListener';
-        document[method]('pointerdown', outside, true); window[method]('resize', resized);
+        document[method]('pointerdown', outside, true); window[method]('resize', resized); document[method]('scroll', scrolled, true);
+        node.getRootNode()[method]('scroll', scrolled, true);
       }
     }
     function choose(index) {
