@@ -4,11 +4,11 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { portPair } from './port-pair.mjs';
 import { exampleState } from './fixture.mjs';
-import '../storage-core.js';
+import '../inventory-core.js';
 import '../inventory-draft.js';
-import '../storage-lock.js';
+import '../inventory-lock.js';
 const C=globalThis.VoyageStorageCore,D=globalThis.VoyageInventoryDraft,L=globalThis.VoyageStorageLock,copy=structuredClone;
-const workerSource=fs.readFileSync(new URL('../storage-worker.js',import.meta.url),'utf8');
+const workerSource=fs.readFileSync(new URL('../inventory-worker.js',import.meta.url),'utf8');
 const defer=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
 const tick=()=>new Promise(r=>setImmediate(r));
 function fixture() {
@@ -104,9 +104,9 @@ test('the actual panel stops further native actions after losing the worker, ret
     saveInventory:async()=>{transfers++;throw Error('An interrupted lock must not reach a new native save');}
   };
   const marker='host.mountLaunchers({ open, close, isOpen: () => !!panel, hasChanges, isBusy: () => busy || closeConfirming });';
-  const panelSource=fs.readFileSync(new URL('../storage-panel.js',import.meta.url),'utf8').replace(marker,`host.capture({applyDraft,editDraft,seed(state,saved,display){snapshot=clone(state);persistedShape=clone(state);record=clone(saved);displayContext=clone(display);selected=display.activeCharacter;inventoryDraft=D.create(state,saved,display);}});${marker}`);
+  const panelSource=fs.readFileSync(new URL('../inventory-panel.js',import.meta.url),'utf8').replace(marker,`host.capture({applyDraft,editDraft,seed(state,saved,display){snapshot=clone(state);persistedShape=clone(state);record=clone(saved);displayContext=clone(display);selected=display.activeCharacter;inventoryDraft=D.create(state,saved,display);}});${marker}`);
   const scope=vm.createContext({structuredClone,console,setTimeout,clearTimeout,setInterval,clearInterval,window:{addEventListener(){}},VoyageStorageCore:C,VoyageInventoryDraft:D,chrome:{runtime:h.runtime(),storage:h.chrome.storage}});
-  vm.runInContext(fs.readFileSync(new URL('../storage-lock.js',import.meta.url),'utf8'),scope);
+  vm.runInContext(fs.readFileSync(new URL('../inventory-lock.js',import.meta.url),'utf8'),scope);
   vm.runInContext(panelSource,scope);scope.VoyageStoragePanel.install(host);
   panel.seed(h.state,h.record,context);
   await panel.editDraft('deposit',{item:h.state.characters[h.who].inventory.pack,quantity:1,location:C.storageAreas(h.record.vault,context.areaContext).current});

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {exampleState,fixtureLocation} from './fixture.mjs';
-await import('../storage-core.js');
+await import('../inventory-core.js');
 await import('../carried-tree.js');
 const C=globalThis.VoyageStorageCore,D=globalThis.VoyageCarriedTree.dropDecision,who='Example Adventurer';
 function setup(){

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { exampleState } from './fixture.mjs';
-await import('../storage-core.js');
+await import('../inventory-core.js');
 const C=globalThis.VoyageStorageCore, who='Example Adventurer';
 
 function setup() {

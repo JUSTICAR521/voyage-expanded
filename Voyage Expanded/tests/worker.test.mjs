@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-const source = fs.readFileSync(new URL('../storage-worker.js', import.meta.url), 'utf8');
+const source = fs.readFileSync(new URL('../inventory-worker.js', import.meta.url), 'utf8');
 const message = { type: 'voyage-storage:backup', name: '../example', json: JSON.stringify({ format: 'voyage-storage-backup', version: 1 }) };
 function worker(downloadState = 'complete') {
   let listener, request = null;

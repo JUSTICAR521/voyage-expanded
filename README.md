@@ -1,12 +1,12 @@
 # Voyage Expanded
 
-An independent community extension for **Voyage** in desktop **Chrome and Microsoft Edge**. Organize your equipment, leave possessions at campaign locations, and correct the day and time through optional modules.
+An independent community extension for **Voyage** in desktop **Chrome and Microsoft Edge**. Organize your equipment, manage containers, and leave possessions at campaign locations. This initial release includes Inventory.
 
 **Version 0.1.0 · Preview · MIT licensed**
 
 [Download the release ZIP](https://github.com/JUSTICAR521/voyage-expanded/releases/tag/v0.1.0) · [User guide](<Voyage Expanded/share-docs/README.md>) · [Report an issue](https://github.com/JUSTICAR521/voyage-expanded/issues)
 
-## Choose your modules
+## Inventory settings
 
 Open Voyage's **Settings → Voyage Expanded**.
 
@@ -14,9 +14,8 @@ Open Voyage's **Settings → Voyage Expanded**.
 | --- | --- | --- |
 | Inventory | On | Adds the Inventory window, containers, local item labels, and storage at campaign areas. |
 | Hide Native Inventory | On | Hides Voyage's Inventory tab while the Inventory module is enabled. Turn it off to keep both interfaces. |
-| Day & Time | On | Makes the day/time text open a correction window and the location text open Map. |
 
-The Settings section remains available when both modules are off. Module preferences apply to this browser profile; possessions remain separate for each campaign and character. Turning Inventory off retains its local records. If an Inventory draft is open, its Apply / Cancel / Discard decision still applies.
+The Settings section remains available when Inventory is off. Module preferences apply to this browser profile; possessions remain separate for each campaign and character. Turning Inventory off retains its local records. If an Inventory draft is open, its Apply / Cancel / Discard decision still applies.
 
 ## Inventory
 
@@ -29,10 +28,6 @@ The Settings section remains available when both modules are off. Module prefere
 
 Carried container contents remain ordinary carried items to Voyage. Deposited items are removed from the game's inventory and kept in this extension's browser-local storage. **A Voyage save alone does not contain those stored possessions.** Export them before uninstalling, clearing extension/profile data, or changing computers. There is no cloud sync.
 
-## Day & Time
-
-Click the day/time above the character portraits. Enter a day and select a preset or custom time of day. This corrects the active party's clock; it does not advance a turn, simulate travel/rest, or lock future narration. Click the location beside it to open Voyage's Map.
-
 ## Install
 
 1. Download **Voyage Expanded.zip** from [Releases](https://github.com/JUSTICAR521/voyage-expanded/releases) and extract it.
@@ -41,7 +36,7 @@ Click the day/time above the character portraits. Enter a day and select a prese
 4. Choose **Load unpacked** and select the folder directly containing `manifest.json`.
 5. Allow Voyage site access if prompted, then refresh Voyage.
 
-Use only one Expanded/Inventory/Time/Complete build at a time. To move from an earlier installation, export every campaign/character record you need, disable the old build, load this one, and import each backup in the matching campaign. Verify the imported possessions before removing the old extension.
+Use only one installation of Voyage Expanded at a time. To move from an earlier installation, export every campaign/character record you need, disable the old build, load this one, and import each backup in the matching campaign. Verify the imported possessions before removing the old extension.
 
 For future updates, replace the files **inside the same installed folder**, reload the extension, and refresh Voyage. Do this separately in each browser. No store installation, automatic updater, extra account, API key, or file-URL permission is needed.
 
@@ -50,7 +45,7 @@ For future updates, replace the files **inside the same installed folder**, relo
 You need the campaign's **State Editor** permission to save changes. The extension reads the current World's categories, tiers, equipment slots, party, and locations; it is not tied to Larion. Compatibility still depends on Voyage's current UI and state format. Start with a test copy of your campaign.
 
 
-The module consolidation is checked with automated tests and a disposable browser fixture. This is a preview, not a claim of support for every World, every Voyage environment, mobile browsers, or future platform updates. See [validation notes](VALIDATION.md) for the tested scope.
+The Inventory release is checked with automated tests and a disposable browser fixture. This is a preview, not a claim of support for every World, every Voyage environment, mobile browsers, or future platform updates. See [validation notes](VALIDATION.md) for the tested scope.
 
 ## Privacy and permissions
 

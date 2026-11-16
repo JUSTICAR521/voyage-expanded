@@ -31,7 +31,7 @@ function startup(rules, page = 'https://alpha.voyage.io/play?saveId=123') {
       injected.add(file);
       // Exercise the real panel's startup contract with a launcher adapter below.
       // Native DOM mounting remains a browser integration check.
-      if (!['voyage-adapter.js', 'time-adapter.js'].includes(file)) vm.runInContext(fs.readFileSync(new URL(file, root), 'utf8'), worlds.get(name), { filename: file });
+      if (file !== 'voyage-adapter.js') vm.runInContext(fs.readFileSync(new URL(file, root), 'utf8'), worlds.get(name), { filename: file });
     }
   }
   let mounts = 0;
@@ -41,9 +41,9 @@ function startup(rules, page = 'https://alpha.voyage.io/play?saveId=123') {
 
 test('the old cross-world duplicate reproduces the silent missing launcher', () => {
   const oldRules = structuredClone(manifest.content_scripts);
-  oldRules.find(rule => rule.world === 'MAIN').js[0] = 'storage-core.js';
+  oldRules.find(rule => rule.world === 'MAIN').js[0] = 'inventory-core.js';
   const result = startup(oldRules);
-  assert.deepEqual(result.skipped, ['storage-core.js']);
+  assert.deepEqual(result.skipped, ['inventory-core.js']);
   assert.ok(result.worlds.get('MAIN').VoyageStorageCore);
   assert.equal(result.worlds.get('ISOLATED').VoyageStorageCore, undefined);
   assert.equal(result.mounts, 0);

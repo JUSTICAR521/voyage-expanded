@@ -2,29 +2,28 @@
 
 **Version 0.1.0 · Preview for desktop Chrome and Microsoft Edge**
 
-Voyage Expanded adds optional Inventory and Day & Time modules to Voyage. It is an independent community extension, not an official Voyage product. An API key, a separate account, and build tools are not needed to use it.
+Voyage Expanded adds inventory organization and location storage to Voyage. It is an independent community extension, not an official Voyage product. An API key, a separate account, and build tools are not needed to use it.
 
 Source, releases, and issues: [github.com/JUSTICAR521/voyage-expanded](https://github.com/JUSTICAR521/voyage-expanded).
 
-## Install and choose modules
+## Install and configure Inventory
 
 1. Extract `Voyage Expanded.zip` and keep its **Voyage Expanded** folder somewhere permanent.
 2. Open `chrome://extensions` or `edge://extensions`.
 3. Turn on **Developer mode**, choose **Load unpacked**, and select the folder directly containing `manifest.json`.
 4. Allow Voyage site access if prompted, then refresh your Voyage tab.
-5. Open **Settings → Voyage Expanded** to choose your modules.
+5. Open **Settings → Voyage Expanded** to configure Inventory.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
 | Inventory | On | Adds the custom Inventory window and local storage system. |
 | Hide Native Inventory | On | Hides the native Inventory tab while Inventory is enabled. Turn off to use both. |
-| Day & Time | On | Adds the clock editor and location-to-Map shortcut. |
 
-The Settings section stays available with all modules off. Settings are shared by Voyage tabs in this browser profile; they do not sync between browsers. Hide Native Inventory is unavailable while Inventory is off. Turning a module off removes its controls and stops its UI monitoring, but preserves saved possessions and previously applied game changes.
+The Settings section stays available with Inventory off. Settings are shared by Voyage tabs in this browser profile; they do not sync between browsers. Hide Native Inventory is unavailable while Inventory is off. Turning a module off removes its controls and stops its UI monitoring, but preserves saved possessions and previously applied game changes.
 
-If Inventory has an open draft, disabling it uses the same Apply / Cancel / Discard decision as closing it. An operation already being applied must finish first. A Day & Time window must be closed before disabling that module. A change from another tab can wait for that tab's open window to close.
+If Inventory has an open draft, disabling it uses the same Apply / Cancel / Discard decision as closing it. An operation already being applied must finish first. A change from another tab can wait for that tab's open window to close.
 
-The browser-toolbar entry has no popup. File-URL and private-browsing access are unnecessary. Use only one Expanded/Inventory/Time/Complete build at a time.
+The browser-toolbar entry has no popup. File-URL and private-browsing access are unnecessary. Use only one installation of Voyage Expanded at a time.
 
 ## Access and compatibility
 
@@ -80,14 +79,6 @@ Refresh and backups are unavailable while changes are unapplied. Reloading or cl
 
 If Apply is interrupted, use **Review unfinished changes** before retrying. It checks the saved result and may ask which stored record matches the outcome. Uncertain writes are not automatically repeated. If a record cannot be reconciled, keep it and your manual backup rather than repeatedly applying the draft.
 
-## Day & Time
-
-Click the day/time above the portraits. Day accepts whole numbers from 1 upward. Time offers Dawn, Morning, Noon, Afternoon, Evening, Dusk, Night, Midnight, and **Custom…**. Existing custom wording remains available. The presets are interface shortcuts, not a World enum.
-
-Apply corrects only the active party's `partyState.day` and `partyState.timeOfDay` through the State Editor. It does not advance a story turn, simulate rest or travel, heal characters, or undo events. Corrections are saved in Voyage and visible elsewhere. The narrator can still change the clock on a later turn.
-
-Cancel, Close, or Escape closes without saving; Escape first closes an open dropdown. Clicking the location beside the time opens the native **Map** tab. Close Inventory, Settings, Creator Tools, and other editors before editing time.
-
 ## Backups and multiple campaigns
 
 Records are separate for each campaign and character. Chrome, Edge, different profiles, and separately loaded extension folders each have their own data. **There is no cloud sync or automatic backup download.** Export Backup is manual and exports the current campaign/character record.
@@ -115,7 +106,7 @@ Disabling Inventory or the entire extension retains local records. Stored items 
 
 | Problem | Try this |
 | --- | --- |
-| Inventory/time controls missing | Check extension enabled, Voyage site access, and module switches. Reload extension and refresh Voyage. Disable duplicate builds. |
+| Inventory controls missing | Check extension enabled, Voyage site access, and module switches. Reload extension and refresh Voyage. Disable duplicate builds. |
 | Module cannot turn off | Close its open window; apply/cancel/discard Inventory edits or wait for a running action to finish. |
 | State Editor access error | Confirm your campaign role permits it. Close Settings and other editors first. |
 | Another tab is using the record | Finish or close that operation, then refresh Inventory. |
