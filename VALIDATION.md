@@ -85,3 +85,11 @@ Observed limitations and transient behavior:
 - Live coverage is Edge with one World/preset. Nested-container edge cases, interrupted requests, concurrent edits, malformed imports, remote-location restrictions, and other failure paths remain automated coverage rather than newly reproduced live cases. Persisted renaming was not retested; this pass exercised a staged rename and Discard. No new Chrome, iOS, or Preview test was performed.
 
 Private export comparisons, test output, and screenshots are retained locally and excluded from the repository/package. No extension runtime change or new release resulted from this pass.
+
+### Settings navigation follow-up — 2026-11-16
+
+The injected Voyage Expanded entry now uses native selected styling while its section is active, clears the previous native selection, and restores native navigation when leaving the section. It includes an original decorative compass SVG. Dialog remounting also resets detached references so the entry is rebuilt cleanly.
+
+All 321 automated tests pass. The local `tests/settings-navigation.html` browser fixture additionally passed eight checks: exclusive Expanded selection, inherited selected styling, compass presence, native navigation restoration, inactive styling, scrolling away, search hiding, and reopening without duplicate entries. The fixture runs the actual Settings script and does not connect to a campaign.
+
+After reloading the extension and refreshing Voyage in Edge, the user confirmed that both the selected entry and icon work in the live Settings window.

@@ -12,6 +12,38 @@
   const norm = text => String(text || '').replace(/\s+/g, ' ').trim();
   const controls = new Map(), hiddenMessages = new Set();
   let dialog = null, scroller = null, section = null, link = null, message = null, frame = null;
+  let activeClass = '', inactiveClass = '';
+  const suppressed = new Map();
+  function restoreNativeSelection() {
+    const nativeSelected = dialog?.querySelector('button[aria-pressed="true"]:not([data-voyage-expanded])');
+    for (const [button, saved] of suppressed) {
+      if (button.getAttribute('aria-pressed') === 'false' && button.className === inactiveClass) {
+        button.className = nativeSelected ? inactiveClass : saved.className;
+        button.setAttribute('aria-pressed', nativeSelected ? 'false' : saved.pressed);
+      }
+    }
+    suppressed.clear();
+  }
+  function syncSelection(nav) {
+    const active = !section.hidden && section.getBoundingClientRect().top <= scroller.getBoundingClientRect().top + 24
+      && section.getBoundingClientRect().bottom > scroller.getBoundingClientRect().top;
+    const nativeButtons = [...nav.querySelectorAll('button[aria-pressed]')].filter(button => button !== link);
+    const selected = nativeButtons.find(button => button.getAttribute('aria-pressed') === 'true');
+    const inactive = nativeButtons.find(button => button.getAttribute('aria-pressed') === 'false' && !suppressed.has(button)
+      && button.getAttribute('aria-label') !== 'Leave Game');
+    if (inactive) inactiveClass = inactive.className;
+    if (selected) activeClass = selected.className;
+    if (active) {
+      for (const button of nativeButtons.filter(button => button.getAttribute('aria-pressed') === 'true')) {
+        suppressed.set(button, {className: button.className, pressed: 'true'});
+        button.className = inactiveClass;
+        button.setAttribute('aria-pressed', 'false');
+      }
+    } else restoreNativeSelection();
+    const className = active ? activeClass || inactiveClass : inactiveClass;
+    if (link.className !== className) link.className = className;
+    if (link.getAttribute('aria-pressed') !== String(active)) link.setAttribute('aria-pressed', String(active));
+  }
   const style = document.createElement('style'); style.dataset.voyageExpanded = 'settings-style';
   style.textContent = '[data-voyage-expanded="settings"]{box-sizing:border-box;min-height:100%;padding:8px 8px 12px 0}[data-voyage-expanded="settings"][hidden],[data-voyage-expanded="settings-link"][hidden],[data-voyage-expanded-search-empty]{display:none!important}';
   document.head.append(style);
@@ -25,13 +57,22 @@
     frame = null;
     const search = document.querySelector(searchSelector), current = search?.closest('[role="dialog"]');
     if (current !== dialog) {
-      section?.remove(); link?.remove(); scroller = null; dialog = current;
+      restoreNativeSelection();
+      scroller?.removeEventListener('scroll', schedule);
+      section?.remove(); link?.remove(); section = link = null; controls.clear();
+      scroller = null; dialog = current; activeClass = inactiveClass = '';
       for (const node of hiddenMessages) node.removeAttribute('data-voyage-expanded-search-empty');
       hiddenMessages.clear();
     }
     if (!dialog) return;
     const template = dialog.querySelector('[data-settings-node="display-tips"]');
-    if (template) scroller = template.closest('[class~="overflow-y-auto"]');
+    if (template) {
+      const nextScroller = template.closest('[class~="overflow-y-auto"]');
+      if (nextScroller !== scroller) {
+        scroller?.removeEventListener('scroll', schedule);
+        scroller = nextScroller; scroller?.addEventListener('scroll', schedule, {passive: true});
+      }
+    }
     const navTemplate = dialog.querySelector('button[aria-label="Display"],button[aria-label="Creator Tools"]')
       || dialog.querySelector('button[aria-label^="Experiments"],button[aria-label="Leave Game"]');
     const nav = navTemplate?.parentElement;
@@ -62,18 +103,29 @@
       link = navTemplate.cloneNode(false); stripRelationships(link);
       for (const attr of ['aria-pressed', 'aria-expanded']) link.removeAttribute(attr);
       link.dataset.voyageExpanded = 'settings-link'; link.setAttribute('aria-label', 'Voyage Expanded'); link.setAttribute('aria-controls', section.id);
-      link.textContent = 'Voyage Expanded';
-      link.addEventListener('click', () => scroller.scrollTo({ top: scroller.scrollTop + section.getBoundingClientRect().top - scroller.getBoundingClientRect().top, behavior: 'instant' }));
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      for (const [key, value] of Object.entries({viewBox:'0 0 24 24',width:'20',height:'20',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round','aria-hidden':'true',focusable:'false'})) icon.setAttribute(key, value);
+      icon.style.cssText = 'flex:none;pointer-events:none';
+      const ring = document.createElementNS(icon.namespaceURI, 'circle');
+      ring.setAttribute('cx','12'); ring.setAttribute('cy','12'); ring.setAttribute('r','9');
+      const needle = document.createElementNS(icon.namespaceURI, 'path');
+      needle.setAttribute('d','M16 8l-2.5 5.5L8 16l2.5-5.5L16 8Z');
+      icon.append(ring, needle);
+      const caption = document.createElement('span'); caption.dataset.slot = 'voyage-button-label';
+      caption.className = 'min-w-0 truncate'; caption.textContent = 'Voyage Expanded'; link.append(icon, caption);
+      link.addEventListener('click', () => {
+        scroller.scrollTo({ top: scroller.scrollTop + section.getBoundingClientRect().top - scroller.getBoundingClientRect().top, behavior: 'instant' });
+        syncSelection(nav);
+      });
     }
     if (section.parentElement !== scroller) scroller.append(section);
     const anchor = nav.querySelector('button[aria-label^="Experiments"],button[aria-label="Leave Game"]');
     if (anchor) { if (link.nextElementSibling !== anchor) anchor.before(link); }
     else if (link.parentElement !== nav) nav.append(link);
-    const inactive = [...nav.querySelectorAll('button[aria-pressed="false"]')].find(node => node.getAttribute('aria-label') !== 'Leave Game');
-    if (inactive && link.className !== inactive.className) link.className = inactive.className;
     const query = norm(search.value).toLocaleLowerCase().split(' ').filter(Boolean);
     const searchable = ('Voyage Expanded ' + fields.flat().join(' ')).toLocaleLowerCase();
     const matches = query.every(word => searchable.includes(word)); section.hidden = link.hidden = !matches;
+    syncSelection(nav);
     for (const node of hiddenMessages) node.removeAttribute('data-voyage-expanded-search-empty'); hiddenMessages.clear();
     if (matches && query.length) for (const node of dialog.querySelectorAll('p,span,div')) {
       if (!node.childElementCount && /^(No settings found|0 setting categories found)$/.test(norm(node.textContent))) {
@@ -90,5 +142,9 @@
   }
   new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'aria-pressed'] });
   document.addEventListener('input', event => { if (event.target?.matches?.(searchSelector)) schedule(); });
+  document.addEventListener('click', event => {
+    const button = event.target?.closest?.('button');
+    if (button && button !== link && button.parentElement === link?.parentElement) restoreNativeSelection();
+  }, true);
   core.subscribe(schedule); setInterval(schedule, 1500); schedule();
 })();

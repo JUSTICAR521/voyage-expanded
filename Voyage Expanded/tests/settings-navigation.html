@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Settings navigation regression</title>
+<style>
+body{background:#15191a;color:#f7f7f7;font:16px system-ui;margin:24px}button,input{font:inherit;color:inherit;background:#444;border:0;border-radius:12px;padding:12px;cursor:pointer}
+[role=dialog]{max-width:1000px;margin:auto}.layout{display:flex;gap:24px;margin-top:24px}nav{width:230px;flex:none;display:flex;flex-direction:column;gap:12px}nav button{display:flex;align-items:center;gap:8px;text-align:left}.idle{background:#444}.selected{background:#3e535c}.overflow-y-auto{height:400px;overflow:auto;flex:1}.native-section{min-height:450px}input[role=switch]{float:right} [hidden]{display:none!important}#result{white-space:pre-wrap}
+</style></head><body>
+<p>Local Settings fixture — no campaign connection.</p><button id="run">Run navigation checks</button><pre id="result" role="status"></pre><main></main>
+<script>
+const main=document.querySelector('main');
+function mount(){main.innerHTML=`<div role="dialog"><input placeholder="Search settings"><div class="layout"><nav><button class="idle" aria-label="Display" aria-pressed="false">Display</button><button class="selected" aria-label="Creator Tools" aria-pressed="true">Creator Tools</button><button class="idle" aria-label="Experiments" aria-pressed="false">Experiments</button></nav><div class="overflow-y-auto"><section class="native-section" id="display"><h2>Display</h2><div><div data-settings-node="display-tips"><div data-slot="voyage-settings-row"><div><div><label for="tips">Tips</label></div></div><input id="tips" type="checkbox" role="switch"></div></div></div></section><section class="native-section" id="creator"><h2>Creator Tools</h2></section></div></div></div>`;
+ const scroll=main.querySelector('.overflow-y-auto');
+ for(const button of main.querySelectorAll('nav button'))button.addEventListener('click',()=>{for(const other of main.querySelectorAll('nav button:not([data-voyage-expanded])')){other.className=other===button?'selected':'idle';other.setAttribute('aria-pressed',String(other===button));}scroll.scrollTop=button.getAttribute('aria-label')==='Display'?0:450;});
+ scroll.scrollTop=450;
+}
+const listeners=[];const values={inventory:true,hideNativeInventory:true};
+globalThis.VoyageExpanded={state:()=>({ready:true,saving:false,values,error:'',errors:{}}),subscribe:fn=>listeners.push(fn),set:async(k,v)=>{values[k]=v;listeners.forEach(fn=>fn());}};
+mount();
+const settle=()=>new Promise(resolve=>setTimeout(resolve,100));
+document.querySelector('#run').addEventListener('click',async()=>{
+ const results=[];const assert=(value,message)=>{if(!value)throw Error(message);results.push('PASS '+message);};
+ const entry=()=>document.querySelector('[data-voyage-expanded="settings-link"]');
+ const selected=()=>[...document.querySelectorAll('nav button[aria-pressed="true"]')].map(b=>b.getAttribute('aria-label')).join(',');
+ try{
+ await settle();entry().click();await settle();assert(selected()==='Voyage Expanded','Expanded is the only selected entry');assert(entry().className==='selected','Native selected styling is inherited');assert(entry().querySelector('svg[aria-hidden="true"]'),'Decorative compass icon exists');
+ document.querySelector('button[aria-label="Display"]').click();await settle();assert(selected()==='Display','Native navigation restores selection');assert(entry().className==='idle','Expanded loses selected styling');
+ entry().click();await settle();document.querySelector('.overflow-y-auto').scrollTop=450;await settle();assert(selected()!=='Voyage Expanded','Scrolling away clears Expanded selection');
+ entry().click();await settle();const search=document.querySelector('input');search.value='unmatched';search.dispatchEvent(new Event('input',{bubbles:true}));await settle();assert(entry().hidden&&entry().getAttribute('aria-pressed')==='false','Search hiding clears selection');
+ search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));await settle();mount();for(let i=0;i<40&&!entry();i++)await settle();entry().click();await settle();assert(selected()==='Voyage Expanded'&&document.querySelectorAll('[data-voyage-expanded="settings-link"]').length===1,'Reopening remounts exactly one working entry');
+ document.querySelector('#result').textContent=results.join('\n');
+ }catch(error){document.querySelector('#result').textContent=results.join('\n')+'\nFAIL '+error.message;}
+});
+</script><script src="/expanded-settings.js"></script></body></html>
