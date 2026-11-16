@@ -1,6 +1,6 @@
 # Voyage Expanded
 
-An independent community Chromium-based extension for **Voyage**.
+An independent community extension for **Voyage**, built for Chromium-based browsers.
 
 **Version 0.1.0 · Preview · MIT licensed**
 
