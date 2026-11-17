@@ -32,7 +32,8 @@ require('../../smoke.cjs').run = async ({ win }) => {
     const sourceRow = document.querySelector('.source-row');
     const frame = document.createElement('div'); frame.className = 'party-frame';
     const controls = document.createElement('div'); controls.className = 'control-wrap';
-    sourceRow.before(frame); controls.append(sourceRow); frame.append(controls, portraits);
+    const portraitWrap=document.createElement('div');portraitWrap.append(portraits);
+    sourceRow.before(frame); controls.append(sourceRow); frame.append(controls, portraitWrap);
     window.partyClicks=0;
     portraits.firstElementChild.addEventListener('click',()=>partyClicks++);
     window.experimentButton=document.querySelector('.experiment');
@@ -163,7 +164,7 @@ require('../../smoke.cjs').run = async ({ win }) => {
   await until(() => page('!document.querySelector("[data-ve-header-info]")'), 'route cleanup');
   assert.equal(await page('getComputedStyle(originalSource).display !== "none"'),true);
   assert.equal(await page('document.querySelectorAll("[data-ve-header-button]").length'),0);
-  assert.equal(await page('document.querySelectorAll("[data-ve-party-toggle], [data-ve-party-hidden], [data-ve-party-controls], [data-ve-party-spacing], [data-ve-party-frame], [data-ve-party-row], [data-ve-party-audio], [data-ve-header-experiments]").length'),0,'Leaving the campaign restores the native display.');
+  assert.equal(await page('document.querySelectorAll("[data-ve-party-toggle], [data-ve-party-hidden], [data-ve-party-controls], [data-ve-party-spacing], [data-ve-party-wrapper], [data-ve-party-frame], [data-ve-party-row], [data-ve-party-audio], [data-ve-header-experiments]").length'),0,'Leaving the campaign restores the native display.');
   await page('history.pushState({},"","/play?saveId=90001");window.dispatchEvent(new PopStateEvent("popstate"))');
   await until(() => page('!!document.querySelector("[data-ve-header-info]")'), 'SPA return');
   await page('document.querySelector("[data-ve-header-info]").click()');

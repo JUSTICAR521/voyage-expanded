@@ -117,11 +117,12 @@
   container: ve-party / inline-size;
 }
 [data-ve-party-frame] > [data-ve-party-controls],
+[data-ve-party-frame] [data-ve-party-wrapper],
 [data-ve-party-frame] [data-ve-party-row] { display: contents !important; }
 [data-ve-party-row] > :has([data-ve-header-source]) { display: none !important; }
 [data-ve-party-frame] [data-ve-party-toggle] { grid-column: 1 !important; grid-row: 1 !important; justify-self: start !important; }
 [data-ve-party-frame] [data-ve-party-audio] { grid-column: 3 !important; grid-row: 1 !important; justify-self: end !important; }
-[data-ve-party-frame] > [data-voyage-nearby-portraits] {
+[data-ve-party-frame] [data-voyage-nearby-portraits] {
   grid-column: 2 !important;
   grid-row: 1 !important;
   min-width: 0 !important;
@@ -132,7 +133,7 @@
   align-self: start !important;
 }
 @container ve-party (max-width: 640px) {
-  [data-ve-party-frame] > [data-voyage-nearby-portraits] {
+  [data-ve-party-frame] [data-voyage-nearby-portraits] {
     grid-column: 1 / -1 !important;
     grid-row: 2 !important;
     margin-top: var(--ve-party-gap, 8px) !important;

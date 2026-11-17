@@ -22,6 +22,7 @@
     party.frame?.removeAttribute('data-ve-party-frame');
     party.row.removeAttribute('data-ve-party-row');
     party.audio.removeAttribute('data-ve-party-audio');
+    for(const wrapper of party.wrappers)wrapper.removeAttribute('data-ve-party-wrapper');
     if (party.addedId && party.portraits.id === party.addedId) party.portraits.removeAttribute('id');
     party = null;
   }
@@ -40,9 +41,13 @@
     const audio = column && column.querySelector('button[aria-label="Mute audio"], button[aria-label="Unmute audio"]');
     const row = audio?.parentElement;
     const controls = row?.parentElement !== column ? row?.parentElement : null;
-    const frame = controls?.parentElement === portraits?.parentElement && parts() ? portraits.parentElement : null;
+    let frame = row?.parentElement;
+    while(frame&&frame!==column&&!frame.contains(portraits))frame=frame.parentElement;
+    if(!parts()||frame===column)frame=null;
+    const wrappers=[];
+    if(frame)for(const start of [row,portraits.parentElement])for(let node=start;node&&node!==frame;node=node.parentElement)if(!wrappers.includes(node))wrappers.push(node);
     if (!portraits || !audio || !row) { clearParty(); return; }
-    if (party && (party.portraits !== portraits || party.audio !== audio || party.row !== row || party.controls !== controls || party.frame !== frame || !party.toggle.isConnected)) clearParty();
+    if (party && (party.portraits !== portraits || party.audio !== audio || party.row !== row || party.controls !== controls || party.frame !== frame || party.wrappers.length!==wrappers.length || party.wrappers.some((node,index)=>node!==wrappers[index]) || !party.toggle.isConnected)) clearParty();
     if (!party) {
       const toggle = document.createElement('button');
       toggle.type = 'button';
@@ -59,10 +64,11 @@
       }
       toggle.setAttribute('aria-controls', portraits.id);
       toggle.addEventListener('click', () => { partyHidden = !partyHidden; updatePartyVisibility(); });
-      party = { portraits, audio, row, controls, frame, toggle, path, addedId };
+      party = { portraits, audio, row, controls, frame, wrappers, toggle, path, addedId };
       controls?.setAttribute('data-ve-party-controls', '');
       portraits.setAttribute('data-ve-party-spacing', '');
       if(frame){frame.setAttribute('data-ve-party-frame','');row.setAttribute('data-ve-party-row','');audio.setAttribute('data-ve-party-audio','');}
+      for(const wrapper of wrappers)wrapper.setAttribute('data-ve-party-wrapper','');
       row.prepend(toggle);
     }
     // Reuse the native gap below the toolbar for the space above the portraits.
