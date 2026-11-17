@@ -19,6 +19,9 @@
     party.portraits.removeAttribute('data-ve-party-spacing');
     party.portraits.style.removeProperty('--ve-party-gap');
     party.controls?.removeAttribute('data-ve-party-controls');
+    party.frame?.removeAttribute('data-ve-party-frame');
+    party.row.removeAttribute('data-ve-party-row');
+    party.audio.removeAttribute('data-ve-party-audio');
     if (party.addedId && party.portraits.id === party.addedId) party.portraits.removeAttribute('id');
     party = null;
   }
@@ -37,8 +40,9 @@
     const audio = column && column.querySelector('button[aria-label="Mute audio"], button[aria-label="Unmute audio"]');
     const row = audio?.parentElement;
     const controls = row?.parentElement !== column ? row?.parentElement : null;
+    const frame = controls?.parentElement === portraits?.parentElement && parts() ? portraits.parentElement : null;
     if (!portraits || !audio || !row) { clearParty(); return; }
-    if (party && (party.portraits !== portraits || party.audio !== audio || party.row !== row || party.controls !== controls || !party.toggle.isConnected)) clearParty();
+    if (party && (party.portraits !== portraits || party.audio !== audio || party.row !== row || party.controls !== controls || party.frame !== frame || !party.toggle.isConnected)) clearParty();
     if (!party) {
       const toggle = document.createElement('button');
       toggle.type = 'button';
@@ -55,9 +59,10 @@
       }
       toggle.setAttribute('aria-controls', portraits.id);
       toggle.addEventListener('click', () => { partyHidden = !partyHidden; updatePartyVisibility(); });
-      party = { portraits, audio, row, controls, toggle, path, addedId };
+      party = { portraits, audio, row, controls, frame, toggle, path, addedId };
       controls?.setAttribute('data-ve-party-controls', '');
       portraits.setAttribute('data-ve-party-spacing', '');
+      if(frame){frame.setAttribute('data-ve-party-frame','');row.setAttribute('data-ve-party-row','');audio.setAttribute('data-ve-party-audio','');}
       row.prepend(toggle);
     }
     // Reuse the native gap below the toolbar for the space above the portraits.

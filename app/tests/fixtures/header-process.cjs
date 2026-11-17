@@ -101,10 +101,13 @@ require('../../smoke.cjs').run = async ({ win }) => {
     await checkInfoTypography();
     const spacing = await page(`(() => {
       const toggle=document.querySelector('[data-ve-party-toggle]').getBoundingClientRect(),header=document.querySelector('[data-ve-header]').getBoundingClientRect(),character=document.querySelector('#voyage-character-panel-trigger').getBoundingClientRect(),portraits=document.querySelector('[data-voyage-nearby-portraits]').getBoundingClientRect();
-      return {leftDifference:toggle.left-character.left,above:toggle.top-header.bottom,below:portraits.top-toggle.bottom};
+      const frame=document.querySelector('[data-ve-party-frame]').getBoundingClientRect(),audio=document.querySelector('[data-ve-party-audio]').getBoundingClientRect();
+      return {leftDifference:toggle.left-character.left,above:toggle.top-header.bottom,below:portraits.top-toggle.bottom,inline:frame.width>640,aligned:portraits.top-toggle.top,portraitLeft:portraits.left,toggleRight:toggle.right,portraitRight:portraits.right,audioLeft:audio.left};
     })()`);
     assert.ok(Math.abs(spacing.leftDifference)<1, 'Party toggle aligns with the top row’s left edge.');
-    assert.ok(Math.abs(spacing.above-8)<1 && Math.abs(spacing.below-spacing.above)<1, 'Equal spacing separates the toolbar, party controls and portraits.');
+    assert.ok(Math.abs(spacing.above-8)<1,'Party row keeps the toolbar gap.');
+    if(spacing.inline){assert.ok(Math.abs(spacing.aligned)<1,'Wide layouts align portraits with both controls.');assert.ok(spacing.portraitLeft>spacing.toggleRight&&spacing.portraitRight<spacing.audioLeft,'Portraits sit between the controls.');}
+    else assert.ok(Math.abs(spacing.below-8)<1,'Narrow layouts wrap portraits beneath the controls.');
     assert.equal(reading.compact, reading.width < 1000, JSON.stringify(reading));
     if (reading.compact) assert.ok(reading.buttons.every(button=>!button.labelVisible));
     else assert.ok(reading.buttons.every(button=>button.labelVisible));
@@ -130,7 +133,9 @@ require('../../smoke.cjs').run = async ({ win }) => {
   assert.equal(partyHidden.label,'Show party');
   assert.equal(partyHidden.expanded,'false');
   assert.ok(partyHidden.path.includes('v10'),'Collapsed pane shows a plus icon.');
-  assert.ok(partyShown.storyTop-partyHidden.storyTop>=149,'The hidden pane releases its vertical space.');
+  assert.ok(partyShown.storyTop-partyHidden.storyTop>=113,'The hidden pane releases its vertical space.');
+  assert.deepEqual(partyHidden.control,partyShown.control,'Party toggle stays in place when portraits hide.');
+  assert.deepEqual(partyHidden.audio,partyShown.audio,'Mute stays in place when portraits hide.');
   await page(`(() => {const old=document.querySelector('[data-voyage-nearby-portraits]'),next=old.cloneNode(true);next.removeAttribute('id');next.removeAttribute('data-ve-party-hidden');next.firstElementChild.addEventListener('click',()=>partyClicks++);old.replaceWith(next);})()`);
   await until(() => page('document.querySelector("[data-voyage-nearby-portraits]").hasAttribute("data-ve-party-hidden")'), 'collapsed state after a native party rerender');
   await page('document.querySelector("[data-ve-party-toggle]").remove()');
@@ -158,7 +163,7 @@ require('../../smoke.cjs').run = async ({ win }) => {
   await until(() => page('!document.querySelector("[data-ve-header-info]")'), 'route cleanup');
   assert.equal(await page('getComputedStyle(originalSource).display !== "none"'),true);
   assert.equal(await page('document.querySelectorAll("[data-ve-header-button]").length'),0);
-  assert.equal(await page('document.querySelectorAll("[data-ve-party-toggle], [data-ve-party-hidden], [data-ve-party-controls], [data-ve-party-spacing], [data-ve-header-experiments]").length'),0,'Leaving the campaign restores the native display.');
+  assert.equal(await page('document.querySelectorAll("[data-ve-party-toggle], [data-ve-party-hidden], [data-ve-party-controls], [data-ve-party-spacing], [data-ve-party-frame], [data-ve-party-row], [data-ve-party-audio], [data-ve-header-experiments]").length'),0,'Leaving the campaign restores the native display.');
   await page('history.pushState({},"","/play?saveId=90001");window.dispatchEvent(new PopStateEvent("popstate"))');
   await until(() => page('!!document.querySelector("[data-ve-header-info]")'), 'SPA return');
   await page('document.querySelector("[data-ve-header-info]").click()');
