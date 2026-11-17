@@ -17,8 +17,19 @@ async function run({ win, host, demo, prepareNavigation }) {
   }
   const isolated = code => win.webContents.executeJavaScriptInIsolatedWorld(999, [{ code }]);
   const page = code => win.webContents.executeJavaScript(code);
-  const until = async (read, label) => { for (let i = 0; i < 100; i++) { const result = await read(); if (result) return result; await new Promise(resolve => setTimeout(resolve, 100)); } throw Error(`Timed out: ${label}`); };
+  const until = async (read, label) => {
+    for (let i = 0; i < 100; i++) {
+      const result = await read(); if (result) return result;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    const status = await page(`document.querySelector('[data-voyage-storage="storage-window"]')?.shadowRoot?.querySelector('.status')?.textContent || document.querySelector('#notice')?.textContent`).catch(()=>null);
+    throw Error(`Timed out: ${label}. Synthetic UI status: ${status}`);
+  };
+  // DOM/preload readiness precedes the fixture's asynchronous game-state fetch.
+  // Wait for both, as a player does before opening a loaded campaign.
+  const gameReady = () => until(() => page(`!!document.querySelector('#root')?.__reactFiberDesktopDemo?.memoizedProps?.value?.state$?.gameplay?.gameState?.peek()`), 'synthetic game initialization');
   await until(() => isolated('!!globalThis.VoyageDesktopInventory && !!globalThis.VoyageExpanded?.state().ready'), 'inventory initialization');
+  await gameReady();
   assert.deepEqual(await page('({node:typeof require,desktop:typeof VoyageDesktopInventory,storage:typeof globalThis.VoyageAppServices?.storage})'), { node: 'undefined', desktop: 'undefined', storage: 'undefined' });
   assert.equal(win.webContents.session.extensions.getAllExtensions().length, 0);
   await isolated('globalThis.VoyageDesktopInventory.open()');
@@ -58,6 +69,7 @@ async function run({ win, host, demo, prepareNavigation }) {
   assert.ok((await fs.readFile(host.storage.filename, 'utf8')).includes('Desktop persistence check'), 'Rename must reach disk before reload.');
   await win.loadURL(`${demo.origin}/play?saveId=90001`);
   await until(() => isolated('!!globalThis.VoyageDesktopInventory && !!globalThis.VoyageExpanded?.state().ready'), 'reload initialization');
+  await gameReady();
   await isolated('VoyageDesktopInventory.open()');
   await until(() => page(`${root}.textContent.includes('Desktop persistence check')`), 'persisted label');
   const record = Object.values(host.storage.values).find(value => value?.vault);

@@ -1,4 +1,6 @@
 const token = __DEMO_TOKEN__;
+// Exercise loading before the synthetic game connection becomes available.
+await new Promise(resolve => setTimeout(resolve, 250));
 let state = await (await fetch('/state')).json();
 const character = 'Example Adventurer';
 let savedSnapshot = null, editorBaseline = null, saves = 0;
