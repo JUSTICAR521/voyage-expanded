@@ -2,7 +2,7 @@
   'use strict';
   const C = globalThis.VoyageStorageCore;
   const styles = `
-    .tree-drag-preview{position:fixed;z-index:50;pointer-events:none;padding:8px 12px;max-width:min(320px,80vw);border:1px solid var(--vs-accent);border-radius:10px;background:var(--vs-panel);color:var(--vs-text);font:12px/1.4 var(--font-voyage,Arial,sans-serif);box-shadow:0 5px 18px #0008}.tree-drag-preview.blocked{border-color:#ff7865;color:#ff7865}
+    .tree-drag-layer{position:fixed;inset:0;z-index:50;overflow:clip;pointer-events:none}.tree-drag-preview{position:absolute;left:0;top:0;pointer-events:none;color:var(--vs-text);will-change:transform}.tree-drag-preview *{pointer-events:none}.tree-drag-preview>.tree-row{border:1px solid var(--vs-accent);border-radius:10px;background:var(--vs-panel);box-shadow:0 10px 26px #0008}.tree-drag-preview.blocked>.tree-row{border-color:#ff7865}.tree-drag-hint{width:fit-content;max-width:100%;margin-top:6px;padding:5px 9px;border:1px solid var(--vs-border);border-radius:8px;background:var(--vs-panel);color:var(--vs-text);font-size:12px;line-height:1.4;overflow-wrap:anywhere;box-shadow:0 5px 18px #0006}.tree-drag-hint[hidden]{display:none}.tree-drag-preview.blocked>.tree-drag-hint{color:#ff7865}
     .carried-tree{display:grid;gap:12px;margin:14px 0 0;padding:0;list-style:none;min-width:0}.tree-children,.tree-loose{display:grid;gap:8px;list-style:none;margin:0;padding:10px;min-width:0}.tree-children[hidden],.tree-loose[hidden],.tree-details[hidden]{display:none}.tree-loose:empty{min-height:64px}
     .tree-entry{list-style:none;min-width:0}.tree-entry:focus{outline:none}.tree-entry:focus-visible>.tree-row{outline:2px solid var(--vs-accent);outline-offset:-2px}
     .tree-container,.carried-group{list-style:none;min-width:0;border:1px solid var(--vs-border);border-radius:12px;background:var(--vs-panel);overflow:hidden}.tree-row{display:flex;align-items:center;gap:8px;padding:9px;border:1px solid var(--vs-border);border-radius:10px;background:color-mix(in srgb,var(--vs-field) 20%,var(--vs-panel));min-width:0;min-height:54px;user-select:none;touch-action:pan-y}.tree-row:hover{background:var(--color-voyage-surface-subtle-hover,#191e21)}.tree-container>.tree-row{border:0;border-radius:11px 11px 0 0;background:color-mix(in srgb,var(--vs-field) 40%,var(--vs-panel))}.tree-container[aria-expanded=false]>.tree-row{border-radius:11px}.tree-container>.tree-row:hover{background:color-mix(in srgb,var(--vs-field) 55%,var(--vs-panel))}.tree-row.can-drag{cursor:grab}.tree-row.dragging{opacity:.45;cursor:grabbing}.tree-row.drop-target,.tree-container.drop-target,.carried-group.drop-target{outline:2px solid var(--vs-accent);outline-offset:-2px}.tree-container.drop-target>.tree-row,.carried-group.drop-target>.carried-root{background:color-mix(in srgb,var(--vs-accent) 12%,var(--vs-panel))}
@@ -91,11 +91,11 @@
     const tree=node('ul','carried-tree');tree.setAttribute('role','tree');tree.setAttribute('aria-label',scopeLabel);
     const q=query.trim().toLowerCase(),{shown,hits}=filterTree(data,query,filter,vault);
     const descriptor={wrapper,data,vault,view,scope,blocked,editBlocked,rootLabel,placementRoot};dropGroup.add(descriptor);
-    let dragged=null, dragRevision=null, pointer=null, frame=0, suppressClick=false,ghost=null;
+    let dragged=null, dragRevision=null, pointer=null, frame=0, suppressClick=false,ghost=null,dragLayer=null;
     const visibleRows=()=>[...tree.querySelectorAll('[role=treeitem]')].filter(el=>!el.closest('[hidden]'));
     const focus=id=>{if(id===null){rootHeader.focus({preventScroll:true});return;}const rows=visibleRows();let current=rows.find(el=>el.dataset.uuid===id)||rows[0];for(const row of rows)row.tabIndex=row===current?0:-1;if(current)current.focus({preventScroll:true});view.focus=current?.dataset.uuid||'';};
     const clearTargets=()=>{for(const tree of dropGroup)tree.wrapper.querySelectorAll('.drop-target').forEach(el=>el.classList.remove('drop-target'));};
-    const cleanup=()=>{cancelAnimationFrame(frame);frame=0;const old=pointer;pointer=null;dragged=null;dragRevision=null;ghost?.remove();ghost=null;if(old?.row.hasPointerCapture(old.id))old.row.releasePointerCapture(old.id);wrapper.querySelectorAll('.dragging').forEach(el=>el.classList.remove('dragging'));clearTargets();};
+    const cleanup=()=>{cancelAnimationFrame(frame);frame=0;const old=pointer;pointer=null;dragged=null;dragRevision=null;dragLayer?.remove();dragLayer=null;ghost=null;if(old?.row.hasPointerCapture(old.id))old.row.releasePointerCapture(old.id);wrapper.querySelectorAll('.dragging').forEach(el=>el.classList.remove('dragging'));clearTargets();};
     window.addEventListener('blur',cleanup);
     function dropTarget(el,parent){el.dataset.containerTarget=parent;}
     function targetAt(x,y){
@@ -118,10 +118,12 @@
       if(target?.allowed)target.element.classList.add('drop-target');
       if(ghost){
         const id=target?.merge?target.targetUuid:target?.parent,label=id?C.itemName(target.tree.data.nodes.get(id).item,vault):target?.tree?.rootLabel;
-        ghost.textContent=target?.reason||`${target?.merge&&target.allowed?'Merge: ':''}${C.itemName(data.nodes.get(dragged).item,vault)}${target?.allowed?` → ${label}`:''}`;
+        const hint=ghost.querySelector('.tree-drag-hint');
+        hint.textContent=target?.reason||(target?.allowed?`${target.merge?'Merge into':'→'} ${label}`:'');
+        hint.hidden=!hint.textContent;
         ghost.classList.toggle('blocked',!!target?.reason);
-        ghost.style.left=`${Math.max(8,Math.min(pointer.x+14,innerWidth-ghost.offsetWidth-8))}px`;
-        ghost.style.top=`${Math.max(8,Math.min(pointer.y+16,innerHeight-ghost.offsetHeight-8))}px`;
+        const x=pointer.x-pointer.offsetX,y=pointer.y-pointer.offsetY;
+        ghost.style.transform=`translate3d(${x}px,${y}px,0)`;
       }
     }
     function autoScroll(){
@@ -130,9 +132,21 @@
       if(rect&&pointer.x>=rect.left&&pointer.x<=rect.right){const speed=pointer.y<rect.top+35?-10:pointer.y>rect.bottom-35?10:0;if(speed){scroller.scrollTop+=speed;highlight();}}
       frame=requestAnimationFrame(autoScroll);
     }
-    function startDragging(){if(!pointer||dragged)return;dragged=pointer.uuid;dragRevision=vault.revision;pointer.row.classList.add('dragging');ghost=node('div','tree-drag-preview');ghost.setAttribute('aria-hidden','true');wrapper.getRootNode().append(ghost);frame=requestAnimationFrame(autoScroll);}
+    function startDragging(){
+      if(!pointer||dragged)return;
+      dragged=pointer.uuid;dragRevision=vault.revision;
+      const preview=pointer.row.cloneNode(true);
+      preview.classList.remove('can-drag','dragging','drop-target');preview.removeAttribute('data-item-target');preview.removeAttribute('title');
+      ghost=node('div','tree-drag-preview');ghost.setAttribute('aria-hidden','true');ghost.inert=true;
+      ghost.style.width=`${pointer.row.getBoundingClientRect().width}px`;
+      ghost.append(preview,node('div','tree-drag-hint'));
+      // Clip at the viewport without clamping the grabbed point or adding scrollbars.
+      dragLayer=node('div','tree-drag-layer');dragLayer.append(ghost);
+      (wrapper.closest('dialog')||wrapper.getRootNode()).append(dragLayer);
+      pointer.row.classList.add('dragging');highlight();frame=requestAnimationFrame(autoScroll);
+    }
     function trackPointer(row,uuid){
-      row.addEventListener('pointerdown',event=>{if(editBlocked||event.button!==0||event.pointerType==='touch'||event.target.closest('button,input'))return;cleanup();suppressClick=false;pointer={id:event.pointerId,row,uuid,startX:event.clientX,startY:event.clientY,x:event.clientX,y:event.clientY};row.setPointerCapture(event.pointerId);});
+      row.addEventListener('pointerdown',event=>{if(editBlocked||event.button!==0||event.pointerType==='touch'||event.target.closest('button,input'))return;cleanup();suppressClick=false;const rect=row.getBoundingClientRect();pointer={id:event.pointerId,row,uuid,startX:event.clientX,startY:event.clientY,x:event.clientX,y:event.clientY,offsetX:event.clientX-rect.left,offsetY:event.clientY-rect.top};row.setPointerCapture(event.pointerId);});
       row.addEventListener('dragstart',event=>event.preventDefault());
       row.addEventListener('pointermove',event=>{if(pointer?.id!==event.pointerId)return;pointer.x=event.clientX;pointer.y=event.clientY;if(Math.hypot(pointer.x-pointer.startX,pointer.y-pointer.startY)>6)startDragging();if(dragged){event.preventDefault();highlight();}});
       row.addEventListener('pointerup',event=>{

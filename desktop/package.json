@@ -1,0 +1,17 @@
+{
+  "name": "voyage-expanded-desktop",
+  "version": "0.1.0-poc.14",
+  "private": true,
+  "license": "MIT",
+  "description": "Desktop proof of concept using the existing Voyage Expanded inventory",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "node launch.mjs",
+    "test": "node --test tests/*.test.cjs",
+    "package": "node package.mjs"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "45.3.3"
+  }
+}

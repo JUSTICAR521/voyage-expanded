@@ -58,6 +58,8 @@ The manifest requests Voyage site access, `storage`, `unlimitedStorage` for loca
 
 ## Source and development
 
+An experimental [desktop app](desktop/README.md) runs the existing Inventory interface in Electron without installing a browser extension. Its portable Windows build opens live Voyage, retains the browser sign-in session, and saves Expanded inventory records in a `Save` folder beside the executable. It includes a responsive game toolbar, party visibility control, and a transparent Voyage icon. The signed-in Alpha interface and session reuse have been checked in the running app; inventory transactions are covered by isolated packaged smoke tests. See the desktop guide for the current verification limits and build instructions. The extension release and its dependency-free build remain separate.
+
 ```
 Voyage Expanded/         Single editable source, tests, and documentation
 dist/Voyage Expanded/    Generated release folder (not tracked by Git)
@@ -68,7 +70,7 @@ The `dist` folder is created when you run `npm run build`; it is not included in
 
 Load `Voyage Expanded` unpacked to work from this checkout. Git branches select the code being developed; there is no separate Dev folder or manifest. For regular play, use a published release in a permanent folder outside the checkout, so switching branches cannot change that installation. Export inventory records before switching installations because separate installations have separate browser storage.
 
-All shipped JavaScript is readable, unminified source. There are no runtime or build dependencies to install. With Node.js 24 or newer:
+All shipped JavaScript is readable, unminified source. The browser extension has no runtime or build dependencies to install. With Node.js 24 or newer:
 
 ```sh
 npm run build

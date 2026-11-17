@@ -8,6 +8,10 @@
   "scripts": {
     "build": "node \"Voyage Expanded/build.mjs\"",
     "test": "node --test \"Voyage Expanded/tests/*.test.mjs\"",
-    "preview": "node \"Voyage Expanded/tests/serve.mjs\""
+    "preview": "node \"Voyage Expanded/tests/serve.mjs\"",
+    "desktop": "node desktop/launch.mjs",
+    "desktop:test": "node --test desktop/tests/*.test.cjs",
+    "desktop:smoke": "node desktop/launch.mjs --smoke-test",
+    "desktop:package": "node desktop/package.mjs"
   }
 }
