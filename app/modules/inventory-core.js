@@ -437,7 +437,7 @@ function renameItem(state, vault, uuid, label) {
 const categoryKey = item => String(item.category || 'Miscellaneous').normalize('NFC').trim().toLowerCase() || 'miscellaneous';
 function inventoryFilters(items) {
   const categories = [...new Set(items.map(categoryKey))].sort((a,b)=>a.localeCompare(b));
-  return [{value:'all',label:'All'},{value:'equipped',label:'Equipped'},...categories.map(value=>({value:`category:${value}`,label:value.replace(/\b\p{L}/gu,c=>c.toUpperCase())}))];
+  return [{value:'all',label:'All items'},{value:'equipped',label:'Equipped'},...categories.map(value=>({value:`category:${value}`,label:value.replace(/\b\p{L}/gu,c=>c.toUpperCase())}))];
 }
 function matchesInventoryFilter(item, filter='all') {
   return filter==='all'||(filter==='equipped'?!!item.equippedSlot:filter===`category:${categoryKey(item)}`);

@@ -59,13 +59,13 @@
   const UI=globalThis.VoyageStoragePanel.ui;
   const styles=`${UI.controlStyles}${UI.sharedStyles}
     [hidden]{display:none!important}textarea{font:inherit}textarea:focus-visible,summary:focus-visible{outline:2px solid var(--vs-accent);outline-offset:2px}
-    dialog{width:min(1020px,calc(100vw - 48px));max-height:calc(100dvh - 48px);padding:0;margin:auto;border:1px solid var(--color-voyage-modal-border-subtle,#383838);border-radius:16px;background:var(--vs-panel);color:inherit;box-shadow:0 24px 80px #0008;overflow:hidden}dialog[open]{display:flex;flex-direction:column}dialog::backdrop{background:#0009}
+    dialog{padding:0;margin:auto;border:1px solid var(--color-voyage-modal-border-subtle,#383838);border-radius:16px;background:var(--vs-panel);color:inherit;box-shadow:0 24px 80px #0008;overflow:hidden}dialog[open]{display:flex;flex-direction:column}dialog::backdrop{background:#0009}
     header{display:flex;gap:16px;align-items:center;padding:20px 24px;border-bottom:1px solid var(--vs-border);flex:none}h1{font-size:24px;font-weight:600;line-height:32px;color:var(--vs-text);margin:0}header .heading{flex:1}.muted{color:var(--vs-muted);font-size:12px}
     .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:14px 24px;border-bottom:1px solid var(--vs-border);flex:none;z-index:1}.toolbar>.search-field{flex:1;min-width:180px}.toolbar>.destination-picker{flex:0 0 160px}
     .body{overflow:auto;min-height:0;flex:1;padding:24px}.notice{padding:12px 16px;background:var(--color-voyage-panel-card-bg,#111417);border:1px solid var(--vs-border);border-radius:12px;color:var(--vs-muted);font-size:12px;margin:0 0 20px}.error{color:var(--color-voyage-studio-error-text,#ff7865)}.page{padding:0 0 24px;margin:0 0 24px;border-bottom:1px solid var(--vs-border)}.page h2{font-size:17px;font-weight:600;color:var(--vs-text);margin:0 0 12px}.note{font:18px/1.7 Georgia,serif;white-space:pre-wrap;color:var(--vs-text);margin:14px 0}.entry-editor{display:grid;gap:10px;margin:14px 0}
     textarea{display:block;width:100%;min-height:140px;resize:vertical;font:17px/1.65 Georgia,serif;background:color-mix(in srgb,var(--vs-field) 50%,var(--vs-panel));color:var(--vs-text);border:1px solid var(--vs-border);border-radius:12px;padding:10px 12px}.actions{display:flex;gap:8px;align-items:center}.events{display:grid;gap:7px;margin:12px 0;padding-left:20px;font-size:13px}.events .muted{display:block}details{border:1px solid var(--vs-border);border-radius:12px;padding:12px 14px;margin-top:14px}summary{cursor:pointer;color:inherit}.original{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.7 var(--font-voyage,system-ui,sans-serif);color:inherit;margin:16px 0}.input{padding:10px 12px;border-left:2px solid var(--vs-border);background:var(--color-voyage-panel-card-bg,#111417);white-space:pre-wrap;margin-top:12px}
     footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:none}.recording{flex:1;min-width:160px}.empty{text-align:center;padding:30px;color:var(--vs-muted)}.busy{opacity:.7}
-    @media(max-width:760px){dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}header,.toolbar,.body,.status{padding-left:20px;padding-right:20px}}@media(max-width:440px){header{gap:8px}h1{font-size:22px}.toolbar>.search-field{min-width:100%;}.toolbar>.destination-picker{flex:1}.note{font-size:17px}}
+    @media(max-width:760px){header,.toolbar,.body,.status{padding-left:20px;padding-right:20px}}@media(max-width:440px){header{gap:8px}h1{font-size:22px}.toolbar>.search-field{min-width:100%;}.toolbar>.destination-picker{flex:1}.note{font-size:17px}}
   `;
 
   function close(force=false) {
@@ -118,7 +118,7 @@
     if(!identity){recordingError=recordingError||'The campaign could not be identified.';updateStatus();return;}
     const host=el('div');host.dataset.voyageJournal='';UI.applyNativeTheme(host);
     const root=host.attachShadow({mode:'open'}),style=el('style');style.textContent=styles;
-    const dialog=el('dialog');dialog.setAttribute('aria-label','Journal');
+    const dialog=el('dialog','journal-window');dialog.setAttribute('aria-label','Journal');
     const header=el('header'),heading=el('div','heading');heading.append(el('h1','','Journal'));
     const editClock=button('Day & Time',()=>{if(close())clockController.open();}),dismiss=button('',()=>close(),'close');dismiss.append(UI.crossIcon());dismiss.setAttribute('aria-label','Close Journal');header.append(heading,editClock,dismiss);
     const toolbar=el('div','toolbar'),search=el('input','search');search.type='search';search.placeholder='Search your journal…';search.setAttribute('aria-label','Search journal');
