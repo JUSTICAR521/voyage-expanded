@@ -47,18 +47,15 @@ async function run({ win, host, demo, prepareNavigation }) {
   assert.equal((await savedGame()).characters['Example Adventurer'].inventory.swordB, undefined);
   console.log('SMOKE: Cancel retained the draft; Apply equipped a sword and deposited another through the native-state bridge.');
   await isolated('VoyageDesktopInventory.open()');
-  // Use the real desktop lock transport and original inventory planner to write
-  // an organization change; reload verifies durable host state and reinjection.
-  await isolated(`(async()=>{
-    const C=VoyageStorageCore,state=await VoyageStorageAdapter.bridge('storageCurrentSnapshot');
-    const vault=C.createVault(state,90001,'Example Adventurer'),key=C.storageKey(vault.identity);
-    await VoyageStorageLock.run(key,async lease=>{
-      const record=(await VoyageAppServices.storage.local.get(key))[key];
-      record.vault=C.renameItem(state,record.vault,'swordB','Desktop persistence check');
-      await lease.put(key,record);
-    });
-  })()`);
-  await prepareNavigation();
+  // Rename through the actual draft UI, then Apply before reloading so the
+  // test stays synchronized with the panel's draft and navigation lifecycle.
+  await page(`${root}.querySelector('[data-uuid="swordB"] [data-item-menu-key]').click()`);
+  await page(`[...${root}.querySelectorAll('.item-menu button')].find(b=>b.textContent==='Rename').click()`);
+  await until(() => page(`!!${root}.querySelector('dialog[aria-label="Rename Item"]')`), 'rename dialog');
+  await page(`(()=>{const d=${root}.querySelector('dialog[aria-label="Rename Item"]');d.querySelector('input').value='Desktop persistence check';[...d.querySelectorAll('button')].find(b=>b.textContent==='Rename').click()})()`);
+  await until(() => isolated('VoyageDesktopInventory.hasChanges() && !VoyageDesktopInventory.isBusy()'), 'staged rename');
+  leaving = prepareNavigation(); await choose('Apply'); assert.equal(await leaving, true);
+  assert.ok((await fs.readFile(host.storage.filename, 'utf8')).includes('Desktop persistence check'), 'Rename must reach disk before reload.');
   await win.loadURL(`${demo.origin}/play?saveId=90001`);
   await until(() => isolated('!!globalThis.VoyageDesktopInventory && !!globalThis.VoyageExpanded?.state().ready'), 'reload initialization');
   await isolated('VoyageDesktopInventory.open()');
