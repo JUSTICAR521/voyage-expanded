@@ -23,12 +23,11 @@
     .top{padding:16px 24px 20px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid var(--vs-border)}
     .toolbar-row{display:flex;align-items:center;gap:8px}.toolbar-row>.close{margin-inline-start:auto}.character-choice{width:100%;min-width:0}
     .toolbar-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto;min-width:0;max-width:100%}.toolbar-actions>button{min-width:0;white-space:nowrap}
-    button.backup-export,button.backup-import{gap:0}.backup-word{white-space:pre}
     .search-actions{display:flex;align-items:center}.search-actions>.search-field{flex:1;min-width:0}
     .inventory-filters{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}.inventory-filters::-webkit-scrollbar{display:none}.inventory-filters>button{flex:none;padding-inline:12px}.inventory-filters>button[aria-pressed=true]{border-color:var(--color-voyage-btn-outlined-border,#646362);background:var(--color-voyage-surface-card,#111417);color:var(--vs-text)}
     .root-label{min-width:0;overflow-wrap:anywhere}.root-suffix{font-weight:400;font-size:11px;color:var(--vs-muted)}
     .columns .carried-tree{margin-top:0}
-    @media(max-width:420px){.toolbar-actions{gap:6px;flex:1}.toolbar-actions>button{flex:1 1 auto;padding-inline:8px}.backup-word{display:none}}
+    @media(max-width:420px){.toolbar-actions{gap:6px;flex:1}.toolbar-actions>button{flex:1 1 auto;padding-inline:8px}}
     .main{padding:24px;min-height:0;overflow:auto;flex:1;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--color-voyage-border-medium,#484848) transparent}.columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}.columns>section{min-width:0}.columns>section+section{border-left:1px solid var(--vs-border);padding-left:24px}
     .main::-webkit-scrollbar{width:10px;height:10px}.main::-webkit-scrollbar-track{background:transparent}.main::-webkit-scrollbar-thumb{background:var(--color-voyage-border-medium,#484848);border:2px solid var(--vs-panel);border-radius:10px}.main::-webkit-scrollbar-thumb:hover{background:var(--vs-muted)}
     .card{padding:18px 0;border-bottom:1px solid var(--vs-border);margin:0;background:transparent}
@@ -318,7 +317,7 @@
       finally {
         busy = false; render();
         if (!panel) globalThis.VoyageExpanded?.refresh();
-        if (restoreImportFocus) { restoreImportFocus = false; root.querySelector('.backup-import')?.focus({ preventScroll: true }); }
+        if (restoreImportFocus) { restoreImportFocus = false; root.querySelector('.close')?.focus({ preventScroll: true }); }
         if (deleteFocusLabel) {
           [...root.querySelectorAll('.delete-item')].find(control => control.getAttribute('aria-label') === deleteFocusLabel)?.focus({ preventScroll: true });
           deleteFocusLabel = '';
@@ -867,29 +866,10 @@
       const searchLens = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); searchLens.setAttribute('cx', '10.5'); searchLens.setAttribute('cy', '10.5'); searchLens.setAttribute('r', '7.5');
       const searchHandle = document.createElementNS('http://www.w3.org/2000/svg', 'path'); searchHandle.setAttribute('d', 'M16 16l5 5');
       searchIcon.append(searchLens, searchHandle); searchField.append(search, searchIcon);
-      const exportButton = button('Export Backup', () => guarded(async () => {
-        const identity = clone(record.vault.identity);
-        await locked(identity, async () => {
-          const saved = await persistence.get(keyFor(identity)) || record;
-          const fresh = await readSnapshot(saved.vault.pending?.type === 'add'); C.assertIdentity(fresh, saved.vault);
-          if (!saved.vault.pending && !saved.vault.operation) C.summary(fresh, saved.vault);
-          await backup(saved, fresh, 'inventory'); record = saved; snapshot = C.basicSnapshot(fresh);
-          if(!record.vault.pending&&!record.vault.operation)inventoryDraft=D.create(snapshot,record,displayContext);
-        });
-        tell('Inventory backup saved to Downloads / Voyage Inventory.');
-      }), 'backup-export');
-      exportButton.replaceChildren(document.createTextNode('Export'),el('span','backup-word',' Backup'));exportButton.setAttribute('aria-label','Export Backup');exportButton.title='Export Backup';
-      exportButton.disabled = busy || !record || hasChanges() || !!record?.draftApply; toolbarActions.append(exportButton);
-      if(hasChanges())exportButton.title='Apply or discard your changes before exporting';
-      const importInput = el('input'); importInput.type = 'file'; importInput.accept = '.json,application/json'; importInput.hidden = true;
-      importInput.addEventListener('change', () => { if (importInput.files[0]) guarded(() => importBackup(importInput.files[0])); });
-      const importButton = button('Import Backup', () => importInput.click(), 'backup-import'); importButton.disabled = busy||hasChanges()||!!record?.draftApply; toolbarActions.append(importButton);
-      if(hasChanges())importButton.title='Apply or discard your changes before importing';
-      importButton.replaceChildren(document.createTextNode('Import'),el('span','backup-word',' Backup'));importButton.setAttribute('aria-label','Import Backup');importButton.title='Import Backup';
       const x = button('', close, 'close'); x.append(crossIcon()); x.setAttribute('aria-label', 'Close inventory'); x.disabled = busy;
       toolbarRow.append(toolbarActions,x);
       const searchActions = el('div', 'search-actions'); searchActions.append(searchField);
-      controls.append(toolbarRow, importInput, searchActions);
+      controls.append(toolbarRow, searchActions);
       if(fallbackCharacter)controls.insertBefore(fallbackCharacter,searchActions);
       const filterBar=el('div','inventory-filters');filterBar.setAttribute('role','group');filterBar.setAttribute('aria-label','Filter possessions');
       const items=[...Object.values(snapshot?.characters?.[selected]?.inventory||{}),...(record?.vault.items||[]).map(entry=>entry.item)];
@@ -1121,7 +1101,8 @@
       render(); veil.showModal(); root.querySelector('.close')?.focus({ preventScroll:true }); await guarded(refresh);
       if (panel) areaTimer=setInterval(followCurrentArea,1500);
     }
-    host.mountLaunchers({ open, close, isOpen: () => !!panel, hasChanges, isBusy: () => busy || closeConfirming });
+    host.mountLaunchers({ open, close, isOpen: () => !!panel, hasChanges, isBusy: () => busy || closeConfirming,
+      importBackup: async file => { await open(); await guarded(() => importBackup(file)); } });
   }
   globalThis.VoyageStoragePanel = Object.freeze({ install, ui: Object.freeze({ styles, applyNativeTheme, el, button, crossIcon, quantityControl, createPicker }) });
 })();

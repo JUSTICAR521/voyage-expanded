@@ -34,18 +34,24 @@ you to sign in again if your session expires, is revoked, or you sign out.
 The app does not store your password or extend the website's cookie lifetimes.
 
 Your actual live campaign is still saved by Voyage's online service.
-Backups are saved to your Downloads\Voyage Inventory folder.
-Journal backups are separate, in Downloads\Voyage Journal\save-<save>-<party>.
-Inventory backups do not include Journal data. The combined local database
+Open Settings > Voyage Expanded > Backups to export or import one combined file.
+Exports go to Downloads\Voyage Expanded and include Inventory, Journal, personal
+notes, and module preferences for ALL locally stored campaigns.
+Import previews the contents before confirmation. Restore replaces all local
+records, saves a before-restore recovery copy, then reloads the app.
+Your login and online campaign state are not included or replaced.
+Automatic module recovery copies retain their existing folders and formats.
+The combined local database
 limit is 80 MB. Journal can only capture full turns still available from Voyage.
 
 Moving from the browser extension:
 Finish pending inventory changes, then export a backup in the extension.
 Export Journal separately if you have Journal records to migrate.
 Sign in to the matching campaign and character in the desktop app.
-Use Import Backup in the desktop inventory. Stored possessions are held in
+Use Import Backup in Settings for both older Inventory and Journal files.
+Older Inventory files open the Inventory review flow; older Journal files merge
+into the matching campaign and party. Stored possessions are held in
 the local inventory record; the Voyage game save alone does not include them.
-Import Journal backups through the application's Journal panel.
 Use one installation at a time for a campaign. Cloud synchronization is not
 included in this preview.
 

@@ -84,35 +84,12 @@ async function run({ win, host, demo, prepareNavigation }) {
   await isolated('VoyageDesktopInventory.open()');
   console.log('SMOKE: Discard preserved the stored item; Apply recovered it without duplication.');
   console.log('SMOKE: records survived reload and the unchanged UI displayed the label.');
-  const exported = await isolated(`(async()=>{ const s=document.querySelector('[data-voyage-storage="storage-window"]').shadowRoot; const b=[...s.querySelectorAll('button')].find(b=>b.textContent.includes('Export Backup')); if(!b) throw Error('No Export Backup button'); b.click(); return true; })()`);
-  assert.equal(exported, true);
-  await until(() => page(`${root}.textContent.includes('Inventory backup saved')`), 'real backup confirmation');
-  const dataDir = path.dirname(host.storage.filename), sessionDir = app.getPath('userData');
-  assert.notEqual(dataDir, sessionDir);
-  if (app.isPackaged) assert.ok(dataDir.startsWith(path.join(path.dirname(process.execPath), 'Save') + path.sep));
-  await assert.rejects(fs.stat(path.join(sessionDir, 'inventory.json')), { code: 'ENOENT' });
-  const backups = path.join(sessionDir, 'backups', 'Voyage Inventory');
-  const files = await fs.readdir(backups); assert.ok(files.some(file => file.endsWith('.json')));
-  const backup = JSON.parse(await fs.readFile(path.join(backups, files.find(file => file.endsWith('.json'))), 'utf8'));
-  assert.equal(backup.format, 'voyage-storage-backup'); assert.equal(backup.version, 1);
+  assert.equal(await page(`${root}.querySelectorAll('.backup-export,.backup-import,input[type="file"]').length`),0,'Backup controls moved out of Inventory.');
   const beforeImport = await savedGame();
-  backup.record.vault = host.core.renameItem(beforeImport, backup.record.vault, 'swordB', 'Imported desktop backup');
-  const importPath = path.join(sessionDir, 'import-check.json');
-  await fs.writeFile(importPath, JSON.stringify(backup));
-  // Exercise Chromium's real File input and the unchanged import handler.
-  // The separate visible UI check covers opening the Windows file picker.
-  win.webContents.debugger.attach('1.3');
-  try {
-    const { result } = await win.webContents.debugger.sendCommand('Runtime.evaluate', { expression: `${root}.querySelector('input[type="file"]')` });
-    assert.ok(result.objectId);
-    await win.webContents.debugger.sendCommand('DOM.setFileInputFiles', { files: [importPath], objectId: result.objectId });
-  } finally { win.webContents.debugger.detach(); }
-  await until(() => page(`${root}.textContent.includes('Backup imported.') && ${root}.textContent.includes('Imported desktop backup')`), 'backup file import');
-  assert.deepEqual(await savedGame(), beforeImport, 'Import changes local records, not Voyage game possessions.');
-  assert.ok((await fs.readFile(host.storage.filename, 'utf8')).includes('Imported desktop backup'));
-  const screenshot = path.join(sessionDir, 'inventory.png'); await fs.writeFile(screenshot, (await win.webContents.capturePage()).toPNG());
-  console.log('SMOKE: active inventory writes are beside the executable under Save; no inventory was written to the browser profile.');
-  console.log(`SMOKE: real JSON backup exported and imported without changing game possessions; screenshot ${screenshot}`);
+  const dataDir=path.dirname(host.storage.filename),sessionDir=app.getPath('userData');
+  assert.notEqual(dataDir,sessionDir);
+  if(app.isPackaged)assert.ok(dataDir.startsWith(path.join(path.dirname(process.execPath),'Save')+path.sep));
+  await assert.rejects(fs.stat(path.join(sessionDir,'inventory.json')),{code:'ENOENT'});
   await isolated('VoyageDesktopInventory.close()');
   await page('document.querySelector("#voyage-journal-panel-trigger").click()');
   const journalRoot = `document.querySelector('[data-voyage-journal]').shadowRoot`;
@@ -129,5 +106,39 @@ async function run({ win, host, demo, prepareNavigation }) {
   assert.ok((await persisted.get(journalKey))[journalKey].refs.some(ref=>ref.kind==='note'));
   assert.deepEqual(await savedGame(),beforeImport,'Journal archive and notes do not alter the campaign.');
   console.log('SMOKE: native Journal button opens archived turns; personal notes persist beside the executable; Journal backup export succeeds without changing the campaign.');
+  assert.equal(await page(`[...${journalRoot}.querySelectorAll('button')].some(b=>/^(Export journal|Import)$/.test(b.textContent))`),false,'Manual backup controls moved out of Journal.');
+  await prepareNavigation();
+  // A minimal native Settings shell exercises the shipped settings integration.
+  await page(`(()=>{const d=document.createElement('div');d.setAttribute('role','dialog');d.id='smoke-settings';d.innerHTML='<input placeholder="Search settings"><button aria-label="Close modal">Close</button><nav><button aria-label="Display" aria-pressed="true">Display</button><button aria-label="Experiments" aria-pressed="false">Experiments</button></nav><div class="overflow-y-auto" style="height:500px;overflow:auto"><h2>Display</h2><div><div data-settings-node="display-tips"><div data-slot="voyage-settings-row"><div><label>Tips</label></div><input role="switch" type="checkbox"></div></div></div></div>';d.querySelector('[aria-label="Close modal"]').onclick=()=>d.remove();document.body.append(d)})()`);
+  await until(()=>page('!!document.querySelector("[data-ve-backup=export]")'),'Settings backup controls');
+  await page('document.querySelector("[data-ve-backup=export]").click()');
+  await until(()=>page('document.querySelector("[data-voyage-expanded=backups] [role=status]").textContent.startsWith("Backup saved:")'),'combined export');
+  const directory=path.join(sessionDir,'backups','Voyage Expanded');
+  const exportedFile=(await fs.readdir(directory)).find(name=>name.includes('-backup-'));
+  const packet=JSON.parse(await fs.readFile(path.join(directory,exportedFile),'utf8'));
+  assert.equal(packet.format,'voyage-expanded-backup');
+  assert.ok(Object.keys(packet.values).some(key=>key.startsWith('voyage-journal:')));
+  const inventoryKey=Object.keys(packet.values).find(key=>key.startsWith('voyage-storage:'));
+  packet.values[inventoryKey].vault=host.core.renameItem(beforeImport,packet.values[inventoryKey].vault,'swordB','Imported combined backup');
+  const importPath=path.join(sessionDir,'combined-import.json');await fs.writeFile(importPath,JSON.stringify(packet));
+  // Only the operating-system picker is stubbed; validation, preview, restore,
+  // recovery file, IPC, settings buttons and reload use the real implementation.
+  const dialog=require('electron').dialog,originalPicker=dialog.showOpenDialog;
+  dialog.showOpenDialog=async()=>({canceled:false,filePaths:[importPath]});
+  try {
+    await page('document.querySelector("[data-ve-backup=import]").click()');
+    await until(()=>page('!!document.querySelector("[data-ve-backup=restore]") && !document.querySelector("[data-ve-backup=restore]").parentElement.hidden && !document.querySelector("[data-ve-backup=restore]").disabled'),'combined preview');
+    assert.ok(!(await fs.readFile(host.storage.filename,'utf8')).includes('Imported combined backup'),'Preview cannot write records.');
+    await page('document.querySelector("[data-ve-backup=restore]").click()');
+    await until(()=>page('!document.querySelector("#smoke-settings")'),'restore reload');
+    await until(()=>isolated('!!globalThis.VoyageDesktopInventory && !!globalThis.VoyageExpanded?.state().ready'),'restored runtime');
+    await gameReady();await isolated('VoyageDesktopInventory.open()');
+    await until(()=>page(`${root}.textContent.includes('Imported combined backup')`),'restored inventory label');
+  } finally {dialog.showOpenDialog=originalPicker;}
+  assert.ok((await fs.readdir(directory)).some(name=>name.includes('-before-restore-')),'Recovery copy is written before replacement.');
+  assert.ok((await host.backup({type:'voyage-journal',op:'query',identity})).cards[0].note,'Journal note survives combined restore.');
+  assert.deepEqual(await savedGame(),beforeImport,'Combined restore does not alter the online campaign.');
+  console.log('SMOKE: Settings exports Inventory and Journal together; preview is read-only; confirmed restore saves recovery, reloads, and preserves Journal notes and game state.');
+
 }
 module.exports = { run };

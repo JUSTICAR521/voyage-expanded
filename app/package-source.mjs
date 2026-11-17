@@ -7,7 +7,7 @@ import vm from 'node:vm';
 export const repository = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const applicationFiles = Object.freeze([
   'main.cjs', 'host.cjs', 'runtime.cjs', 'page-layout.css', 'page-layout.js', 'preload.cjs', 'popup-preload.cjs', 'save-location.cjs', 'browser-session.cjs',
-  'runtime-files.json', 'demo-server.cjs', 'demo.html', 'demo.js', 'smoke.cjs',
+  'runtime-files.json', 'backups.cjs', 'demo-server.cjs', 'demo.html', 'demo.js', 'smoke.cjs',
   'assets/voyage.png', 'assets/voyage.ico', 'assets/SOURCE.txt'
 ]);
 export const moduleFiles = Object.freeze([

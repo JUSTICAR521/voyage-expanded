@@ -74,7 +74,9 @@ async function createHost({ dataDir, backupDir }) {
   const coreSource = await fs.readFile(path.join(RUNTIME, 'inventory-core.js'), 'utf8');
   const core = vm.runInNewContext(`${coreSource}\nVoyageStorageCore;`, { crypto: webcrypto, structuredClone, TextEncoder, console });
   const onConnect = event(), onMessage = event(), held = new Set(), downloads = new Map();
-  let downloadId = 0;
+  let downloadId = 0, maintenance = false;
+  const pendingMessages = new Set();
+  const available = () => { if (maintenance) throw Error('A backup is being restored. Wait for the application to reload.'); };
   const VoyageAppServices = {
     storage: { local: storage, onChanged: storage.onChanged },
     runtime: { id: 'voyage-expanded-desktop', onConnect, onMessage },
@@ -117,25 +119,41 @@ async function createHost({ dataDir, backupDir }) {
   const sender = { id: VoyageAppServices.runtime.id, tab: { id: 1 }, url: 'https://voyage.io/play' };
   // The Electron entry point checks actual origin/frame before reaching here.
   function connect(emit, disconnected) {
+    available();
     let closed = false;
     const port = { name: 'voyage-storage:record-lock', sender, onMessage: event(), onDisconnect: event(),
       postMessage: message => { if (!closed) emit(structuredClone(message)); },
       disconnect() { if (closed) return; closed = true; port.onDisconnect.emit(); disconnected?.(); }
     };
     onConnect.emit(port);
-    return { send(message) { if (closed) throw Error('Inventory connection closed.'); port.onMessage.emit(structuredClone(message)); }, close: () => port.disconnect() };
+    return { send(message) { available(); if (closed) throw Error('Inventory connection closed.'); port.onMessage.emit(structuredClone(message)); }, close: () => port.disconnect() };
   }
   return {
-    storage, core, connect,
+    storage, core, connect, journal: workerContext.VoyageJournalCore,
+    async maintenance(work) {
+      available();
+      if (held.size) throw Error('Finish the active Inventory operation before restoring a backup.');
+      maintenance = true;
+      try {
+        await Promise.allSettled([...pendingMessages]);
+        await workerContext.VoyageJournalWorker.idle();
+        await storage.chain;
+        return await work();
+      } finally { maintenance = false; }
+    },
     async flush() { await workerContext.VoyageJournalWorker.idle(); await storage.chain; },
     async setPreferences(values) {
+      available();
       if (!values || Array.isArray(values) || typeof values !== 'object' || !Object.keys(values).length || Object.entries(values).some(([key, value]) => !SETTINGS.has(key) || typeof value !== 'boolean')) throw Error('Only module preferences can be changed here.');
       await storage.set(values);
     },
     backup(message) {
+      available();
       if (!['voyage-storage:backup', 'voyage-journal'].includes(message?.type)) throw Error('Unsupported desktop message.');
-      return new Promise(resolve => onMessage.emit(message, sender, resolve));
+      const task = new Promise(resolve => onMessage.emit(message, sender, resolve));
+      pendingMessages.add(task); task.finally(() => pendingMessages.delete(task));
+      return task;
     }
   };
 }
-module.exports = { RUNTIME, SETTINGS, allowedOrigin, atomicWrite, DiskStore, createHost };
+module.exports = { RUNTIME, SETTINGS, MAX_BYTES, allowedOrigin, atomicWrite, DiskStore, createHost };

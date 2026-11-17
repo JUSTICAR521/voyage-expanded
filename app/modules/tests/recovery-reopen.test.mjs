@@ -6,7 +6,7 @@ import {exampleState} from './fixture.mjs';
 await import('../inventory-core.js');await import('../inventory-draft.js');
 const C=globalThis.VoyageStorageCore,D=globalThis.VoyageInventoryDraft,who='Example Adventurer',copy=x=>structuredClone(x);
 const panelSource=fs.readFileSync(new URL('../inventory-panel.js',import.meta.url),'utf8');
-const marker='host.mountLaunchers({ open, close, isOpen: () => !!panel, hasChanges, isBusy: () => busy || closeConfirming });';
+const marker='host.mountLaunchers({ open, close, isOpen:';
 assert.equal(panelSource.split(marker).length,2);
 // Expose existing panel closures in this test VM, without adding production hooks
 // or replacing the recovery, reopening, draft or persistence implementations.

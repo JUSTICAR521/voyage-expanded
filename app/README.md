@@ -17,7 +17,7 @@ No extension manifest, extension service worker registration, browser extension 
 
 `save-location.cjs` derives the active Save directory from the executable's folder (or this source directory during development). `browser-session.cjs` retains the established sign-in profile. Its recovery receipt records the previous portable Save location; it does not redirect active saves to AppData.
 
-Closing and reloading honor pending Inventory work, Journal personal-entry drafts, and the clock editor. Shutdown waits for persistence and active Journal backup exports. Inventory and Journal exports remain separate formats. Database keys and the sign-in profile path are compatibility boundaries.
+Closing and reloading honor pending Inventory work, Journal personal-entry drafts, and the clock editor. Shutdown waits for persistence and active Journal backup exports. `backups.cjs` provides combined exports and validated restores from Settings. Restore checks the preview's database fingerprint, blocks new worker requests while draining existing work, writes a recovery copy, atomically replaces the database, and reloads before releasing maintenance mode. Older module backups keep their original import validation. Database keys and the sign-in profile path are compatibility boundaries.
 
 ## Tests and packaging
 

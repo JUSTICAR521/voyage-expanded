@@ -31,7 +31,7 @@ test('disabled Inventory rejects actions before any request',async()=>{
 test('panel rechecks module availability after acquiring its lock and before native actions',async()=>{
   let captured,busy=false,work=0,locks=0,native=0;
   const host={assertAvailable(){if(busy)throw Error('Inventory disabled');},lock:async(_,run)=>{locks++;busy=true;return run();},capture:x=>captured=x,mountLaunchers(){},equip(){native++;}};
-  const marker='host.mountLaunchers({ open, close, isOpen: () => !!panel, hasChanges, isBusy: () => busy || closeConfirming });';
+  const marker='host.mountLaunchers({ open, close, isOpen:';
   const panel=fs.readFileSync(new URL('../inventory-panel.js',import.meta.url),'utf8').replace(marker,'host.capture({locked,host});'+marker);
   const scope=vm.createContext({structuredClone,VoyageStorageCore:{storageKey:()=> 'test-record'}});
   vm.runInContext(panel,scope);scope.VoyageStoragePanel.install(host);

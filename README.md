@@ -2,7 +2,7 @@
 
 An independent community desktop application for **Voyage**, built with Electron. Inventory, Journal, and the responsive game interface run directly in the application. Electron is the sole development and release target; a browser extension is not required.
 
-**0.2.0-preview.2 · Windows x64 · MIT licensed**
+**0.2.0-preview.3 · Windows x64 · MIT licensed**
 
 This is an unsigned portable preview without an installer or automatic updates. Live play requires Voyage's online service and normal account and State Editor permissions. The application does not provide an offline game engine.
 
@@ -58,9 +58,11 @@ Close the application before moving it or copying **Save** into a new applicatio
 
 Sign-in data and browser caches remain in `%APPDATA%/Voyage Expanded Desktop/live/`; this established profile path is retained across upgrades. Moving **Save** does not move your login. Voyage may require sign-in again after session expiry, revocation, or sign-out. The actual live campaign remains on Voyage's servers.
 
-Inventory exports go to **Downloads/Voyage Inventory**. Journal exports go to **Downloads/Voyage Journal/save-<save>-<party>/**. Inventory backups do not include Journal data.
+Use **Settings → Voyage Expanded → Backups** for **Export Backup** and **Import Backup**. One JSON file includes Inventory, Journal entries, personal notes, and module preferences for **all locally stored campaigns**, and is saved in **Downloads/Voyage Expanded**. Login data and Voyage's online campaign state are excluded.
 
-When migrating from an older browser extension, finish pending edits, export Inventory and Journal separately, and import each into the matching campaign and party in the application. Records are not shared automatically. Use one installation at a time for a campaign; separate installations do not share local locks. Cloud synchronization is not included.
+Import previews the number of campaigns and records before confirmation. **Restore Backup replaces all local records and preferences**, writes a `before-restore` recovery copy in the same Downloads folder, then reloads the app. Invalid or damaged backups and previews made stale by subsequent local changes are rejected without replacing the database. Resolve unfinished Inventory transactions before restoring. Automatic Inventory transaction recovery files and Journal recovery copies retain their existing formats and folders.
+
+When migrating from an older browser extension, finish pending edits, export Inventory and Journal separately, and select each file through the same **Import Backup** control in Settings. Older Inventory files open the existing Inventory review flow; older Journal files merge into the matching current campaign and party. They do not replace the combined database. Records are not shared automatically. Use one installation at a time for a campaign; separate installations do not share local locks. Cloud synchronization is not included.
 
 ## Project layout
 

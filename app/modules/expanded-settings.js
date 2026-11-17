@@ -54,6 +54,73 @@
       for (const attr of ['id', 'for', 'aria-labelledby', 'aria-describedby']) part.removeAttribute(attr);
     }
   }
+  function mountBackups(parent) {
+    const service = globalThis.VoyageAppServices?.backups;
+    if (!service) return;
+    const box = document.createElement('section'); box.dataset.voyageExpanded = 'backups';
+    box.style.cssText = 'margin-top:24px;padding-top:20px;border-top:1px solid var(--color-voyage-border-medium,#383838)';
+    const heading = document.createElement('h3'); heading.textContent = 'Backups'; heading.style.cssText = 'font:inherit;font-weight:600;margin:0 0 8px';
+    const description = document.createElement('p'); description.textContent = 'One backup for Inventory, Journal entries, personal notes, and preferences across all locally stored campaigns. Your online Voyage saves and sign-in are separate.';
+    description.style.cssText = 'font-size:13px;line-height:1.5;margin:0 0 12px';
+    const actions = document.createElement('div'); actions.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap';
+    const status = document.createElement('p'); status.setAttribute('role','status'); status.style.cssText = 'font-size:13px;line-height:1.5;overflow-wrap:anywhere;margin:12px 0';
+    const review = document.createElement('div'); review.hidden = true;
+    const details = document.createElement('p'); details.style.cssText = 'font-size:13px;line-height:1.5';
+    let busy = false, selected = null;
+    const button = (text, work) => {
+      const node = document.createElement('button'); node.type='button'; node.textContent=text;
+      node.style.cssText='border:1px solid var(--color-voyage-border-medium,#484848);border-radius:999px;background:transparent;color:inherit;font:inherit;font-size:13px;padding:8px 16px;cursor:pointer';
+      node.addEventListener('click',()=>run(work)); return node;
+    };
+    async function run(work) {
+      if (busy) return; busy=true;
+      for (const node of box.querySelectorAll('button')) node.disabled=true;
+      try { await work(); } catch(error) { status.textContent=error.message; }
+      finally { busy=false; for (const node of box.querySelectorAll('button')) node.disabled=false; }
+    }
+    const reset = async()=>{selected=null;review.hidden=true;await service.run('cancel');};
+    const exportButton = button('Export Backup',async()=>{
+      await reset(); status.textContent='Saving combined backup…';
+      const result=await service.run('export'); status.textContent=`Backup saved: ${result.filename}`;
+    }); exportButton.dataset.veBackup='export';
+    const importButton = button('Import Backup',async()=>{
+      await reset(); status.textContent='Choose a backup file…';
+      const result=await service.run('choose');
+      if(result.cancelled){status.textContent='Import cancelled. No records were changed.';return;}
+      selected=result;
+      if(result.kind==='combined') {
+        const s=result.summary;
+        details.textContent=`This backup contains ${s.campaigns} campaign(s), ${s.inventories} Inventory record(s), and ${s.entries} Journal entries and notes. Restoring replaces ALL local Inventory, Journal, and module preferences with this backup. A recovery copy of your current data will be saved first. The app will reload. Your online Voyage game state is not changed.`;
+        confirm.textContent='Restore Backup';
+      } else {
+        details.textContent=result.packet.format==='voyage-storage-backup'
+          ? 'This is an older Inventory-only backup. Continue to review it in Inventory for the current campaign. Journal records will not be changed.'
+          : 'This is an older Journal-only backup. Its entries will be merged into the matching current campaign and party. Inventory records will not be changed.';
+        confirm.textContent='Import Older Backup';
+      }
+      status.textContent='Review the backup before continuing.';review.hidden=false;
+    }); importButton.dataset.veBackup='import';
+    const confirm = button('Restore Backup',async()=>{
+      if(!selected) return;
+      const choice=selected; selected=null; review.hidden=true;
+      if(choice.kind==='combined') {status.textContent='Restoring backup… The app will reload when complete.';await service.run('restore',choice.token);return;}
+      if(choice.packet.format==='voyage-journal-backup') {
+        const snapshot=await globalThis.VoyageStorageAdapter.bridge('journalSnapshot');
+        const result=await VoyageAppServices.runtime.sendMessage({type:'voyage-journal',op:'import',identity:snapshot.identity,packet:choice.packet});
+        if(!result?.ok) throw Error(result?.error||'Journal import failed.');
+        status.textContent=`Imported ${result.imported} Journal records. Inventory was not changed.`;
+      } else {
+        if(!core.isActive('inventory'))throw Error('Enable Inventory before importing an older Inventory backup.');
+        const close=dialog?.querySelector('button[aria-label="Close modal"]');
+        if(!close)throw Error('Close and reopen Settings before importing this older Inventory backup.');
+        close.click();
+        await globalThis.VoyageDesktopInventory.importBackup({text:async()=>JSON.stringify(choice.packet)});
+      }
+    }); confirm.dataset.veBackup='restore';
+    const cancel = button('Cancel',async()=>{await reset();status.textContent='Import cancelled. No records were changed.';});
+    review.append(details,confirm,cancel); actions.append(exportButton,importButton);
+    box.append(heading,description,actions,review,status); parent.append(box);
+  }
   function sync() {
     frame = null;
     const search = document.querySelector(searchSelector), current = search?.closest('[role="dialog"]');
@@ -101,6 +168,7 @@
       }
       message = document.createElement('p'); message.setAttribute('role', 'alert');
       message.style.cssText = 'color:var(--color-voyage-text-danger,#ff8679);font-size:13px;margin:12px 0'; section.append(message);
+      mountBackups(section);
       link = navTemplate.cloneNode(false); stripRelationships(link);
       for (const attr of ['aria-pressed', 'aria-expanded']) link.removeAttribute(attr);
       link.dataset.voyageExpanded = 'settings-link'; link.setAttribute('aria-label', 'Voyage Expanded'); link.setAttribute('aria-controls', section.id);
@@ -124,7 +192,7 @@
     if (anchor) { if (link.nextElementSibling !== anchor) anchor.before(link); }
     else if (link.parentElement !== nav) nav.append(link);
     const query = norm(search.value).toLocaleLowerCase().split(' ').filter(Boolean);
-    const searchable = ('Voyage Expanded ' + fields.flat().join(' ')).toLocaleLowerCase();
+    const searchable = ('Voyage Expanded Backups Import Export Restore ' + fields.flat().join(' ')).toLocaleLowerCase();
     const matches = query.every(word => searchable.includes(word)); section.hidden = link.hidden = !matches;
     syncSelection(nav);
     for (const node of hiddenMessages) node.removeAttribute('data-voyage-expanded-search-empty'); hiddenMessages.clear();

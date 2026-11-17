@@ -56,7 +56,7 @@ for(const fail of [false,true])test(`panel keeps the batch cover through lock cl
   const h=fixture();let panel;
   const identity={saveId:90001,character:'Test'},session={baseRecord:{vault:{identity}}};
   const panelSource=fs.readFileSync(new URL('../inventory-panel.js',import.meta.url),'utf8');
-  const marker='host.mountLaunchers({ open, close, isOpen: () => !!panel, hasChanges, isBusy: () => busy || closeConfirming });';
+  const marker='host.mountLaunchers({ open, close, isOpen:';
   const covered=()=>assert.equal(h.nodes.length,1);
   const scope=vm.createContext({structuredClone,VoyageStorageCore:{storageKey:()=> 'record'},VoyageInventoryDraft:{apply:async()=>{covered();if(fail)throw Error('Save failed');return {state:{},record:session.baseRecord};}}});
   vm.runInContext(panelSource.replace(marker,'host.capture({applyDraft,seed(value){inventoryDraft=value;}});'+marker),scope);

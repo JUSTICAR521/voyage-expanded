@@ -126,15 +126,11 @@
     const body=el('div','body'),notice=el('div','notice'),pages=el('div'),more=button('Load older entries',()=>load(true));body.append(notice,pages,more);
     const footer=el('footer'),recording=el('div','recording'),takeOver=button('Record in this tab',()=>capture({immediate:true,takeOver:true}));
     const autoLabel=el('label'),auto=el('input');auto.type='checkbox';autoLabel.append(auto,document.createTextNode('Back up every 100 turns'));
-    const exportButton=button('Export journal',async()=>{exportButton.disabled=true;notice.textContent='Exporting journal backup files…';try{const result=await request('export',{},ui.identity);notice.textContent=`${result.files} backup file${result.files===1?'':'s'} downloaded to Voyage Journal in Downloads.`;}catch(error){notice.textContent=error.message;}finally{exportButton.disabled=false;}});
-    const importInput=el('input');importInput.type='file';importInput.accept='.json,application/json';importInput.multiple=true;importInput.hidden=true;
-    const importButton=button('Import',()=>importInput.click());
-    footer.append(recording,takeOver,autoLabel,exportButton,importButton,importInput);dialog.append(header,toolbar,body,footer);root.append(style,dialog);document.body.append(host);
+    footer.append(recording,takeOver,autoLabel);dialog.append(header,toolbar,body,footer);root.append(style,dialog);document.body.append(host);
     const ui=dialogState={host,dialog,identity:J.clone(identity),search,filter,history,pages,notice,count,more,auto,recording,takeOver,editing:false,loading:false,next:null};
     let searchTimer;search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{if(!ui.editing)load(false);},250);});
     for(const input of [filter,history])input.addEventListener('change',()=>{if(!ui.editing)load(false);});
     auto.addEventListener('change',async()=>{try{await request('configure',{enabled:auto.checked},ui.identity);}catch(error){auto.checked=!auto.checked;notice.textContent=error.message;}});
-    importInput.addEventListener('change',async()=>{importButton.disabled=true;try{for(const file of importInput.files){if(file.size>100_000_000)throw Error('This file is too large. Import the smaller automatic backup parts.');await request('import',{packet:JSON.parse(await file.text())},ui.identity);}await load(false);}catch(error){notice.textContent=error.message;}finally{importButton.disabled=false;importInput.value='';}});
     dialog.addEventListener('cancel',event=>{event.preventDefault();close();});for(const type of ['keydown','keyup','keypress'])dialog.addEventListener(type,event=>event.stopPropagation());
     dialog.showModal();updateStatus();await load(false);
   }

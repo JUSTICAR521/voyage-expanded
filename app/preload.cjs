@@ -12,6 +12,7 @@ const ports = new Map();
 ipcRenderer.on('ve:port-reply', (_event, id, message) => ports.get(id)?.onMessage.emit(message));
 ipcRenderer.on('ve:port-closed', (_event, id) => ports.get(id)?.disconnect());
 globalThis.VoyageAppServices = {
+  backups: { run: (action, token) => ipcRenderer.invoke('ve:app-backup', action, token) },
   storage: { onChanged: changes, local: {
     get: keys => ipcRenderer.invoke('ve:get', keys),
     set: values => ipcRenderer.invoke('ve:preferences', values)

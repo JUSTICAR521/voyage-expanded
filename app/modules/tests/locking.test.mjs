@@ -103,7 +103,7 @@ test('the actual panel stops further native actions after losing the worker, ret
     unequip:async args=>{native++;entered.resolve();await resume.promise;delete Object.values(h.state.characters[h.who].inventory).find(i=>i.uuid===args.item.uuid).equippedSlot;},
     saveInventory:async()=>{transfers++;throw Error('An interrupted lock must not reach a new native save');}
   };
-  const marker='host.mountLaunchers({ open, close, isOpen: () => !!panel, hasChanges, isBusy: () => busy || closeConfirming });';
+  const marker='host.mountLaunchers({ open, close, isOpen:';
   const panelSource=fs.readFileSync(new URL('../inventory-panel.js',import.meta.url),'utf8').replace(marker,`host.capture({applyDraft,editDraft,seed(state,saved,display){snapshot=clone(state);persistedShape=clone(state);record=clone(saved);displayContext=clone(display);selected=display.activeCharacter;inventoryDraft=D.create(state,saved,display);}});${marker}`);
   const scope=vm.createContext({structuredClone,console,setTimeout,clearTimeout,setInterval,clearInterval,window:{addEventListener(){}},VoyageStorageCore:C,VoyageInventoryDraft:D,VoyageAppServices:{runtime:h.runtime(),storage:h.VoyageAppServices.storage}});
   vm.runInContext(fs.readFileSync(new URL('../inventory-lock.js',import.meta.url),'utf8'),scope);

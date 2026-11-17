@@ -5,6 +5,7 @@ const os = require('node:os');
 const { randomUUID } = require('node:crypto');
 const { createHost, allowedOrigin } = require('./host.cjs');
 const { buildRuntime } = require('./runtime.cjs');
+const { createBackups } = require('./backups.cjs');
 const { saveDirectory, prepareSaveDirectory } = require('./save-location.cjs');
 const { configureBrowserProfile, flushBrowserSession } = require('./browser-session.cjs');
 const smoke = process.argv.includes('--smoke-test');
@@ -17,7 +18,7 @@ const dataDir = saveDirectory(installationDirectory, smokeId);
 configureBrowserProfile(app, sessionDir);
 app.setName('Voyage Expanded Desktop');
 if (!app.requestSingleInstanceLock()) { app.quit(); } else {
-  let win, host, demo, runtime, quitting = false, preparing = false;
+  let win, host, demo, runtime, quitting = false, preparing = false, backupActionBusy = false;
   const ports = new Map();
   const trusted = url => allowedOrigin(url, demo?.origin);
   const frameAllowed = event => win && event.sender === win.webContents && event.senderFrame === win.webContents.mainFrame && trusted(event.senderFrame.url);
@@ -27,9 +28,9 @@ if (!app.requestSingleInstanceLock()) { app.quit(); } else {
     if (!win || win.isDestroyed() || !trusted(win.webContents.getURL())) return true;
     return win.webContents.executeJavaScriptInIsolatedWorld(999, [{ code: `(async()=>{const p=globalThis.VoyageDesktopInventory;if(p){if(p.isBusy())return false;await p.close();if(p.isOpen())return false;}return await globalThis.VoyageJournal?.prepareNavigation?.() ?? true;})()` }]);
   }
-  async function navigate(url) { if (await prepareNavigation()) await win.loadURL(url); }
+  async function navigate(url) { if (!backupActionBusy && await prepareNavigation()) await win.loadURL(url); }
   async function requestClose() {
-    if (preparing) return; preparing = true;
+    if (preparing || backupActionBusy) return; preparing = true;
     try {
       if (await prepareNavigation()) {
         closePorts();
@@ -50,6 +51,7 @@ if (!app.requestSingleInstanceLock()) { app.quit(); } else {
     const backupDir = smoke ? path.join(sessionDir, 'backups') : app.getPath('downloads');
     await prepareSaveDirectory({ dataDir, sessionDir, migrateLegacy: !smoke });
     host = await createHost({ dataDir, backupDir });
+    const backups = createBackups(host, path.join(backupDir, 'Voyage Expanded'));
     if (smoke) {
       demo = await require('./demo-server.cjs').startDemo(dataDir);
       const C = host.core, vault = C.createVault(demo.state, 90001, 'Example Adventurer'), key = C.storageKey(vault.identity);
@@ -98,6 +100,25 @@ if (!app.requestSingleInstanceLock()) { app.quit(); } else {
     ipcMain.handle('ve:get', (event, keys) => { assertFrame(event); return host.storage.get(keys); });
     ipcMain.handle('ve:preferences', (event, values) => { assertFrame(event); return host.setPreferences(values); });
     ipcMain.handle('ve:backup', (event, message) => { assertFrame(event); return host.backup(message); });
+    ipcMain.handle('ve:app-backup', async (event, action, token) => {
+      assertFrame(event);
+      if (backupActionBusy) throw Error('A backup action is already in progress.');
+      if (!['export','choose','restore','cancel'].includes(action)) throw Error('Unsupported backup action.');
+      backupActionBusy = true;
+      try {
+        if (action === 'cancel') { backups.cancel(); return {cancelled:true}; }
+        if (!await prepareNavigation()) throw Error('Finish your open Inventory, Journal, or clock edit before using backups.');
+        if (action === 'export') return await backups.export();
+        if (action === 'choose') {
+          const result = await dialog.showOpenDialog(win, {title:'Import Voyage Expanded backup',properties:['openFile'],filters:[{name:'JSON backups',extensions:['json']}]});
+          if (result.canceled || !result.filePaths[0]) return {cancelled:true};
+          assertFrame(event);
+          return await backups.preview(result.filePaths[0]);
+        }
+        const url = win.webContents.getURL();
+        return await backups.restore(token, async()=>{closePorts(); await win.loadURL(url);});
+      } finally { backupActionBusy = false; }
+    });
     ipcMain.on('ve:connect', (event, id) => {
       if (!frameAllowed(event) || typeof id !== 'string' || !/^[0-9a-f-]{36}$/.test(id) || ports.has(id) || ports.size >= 16) return;
       const frame = event.senderFrame;
@@ -110,7 +131,7 @@ if (!app.requestSingleInstanceLock()) { app.quit(); } else {
     });
     ipcMain.on('ve:disconnect', (event, id) => { if (frameAllowed(event)) { ports.get(id)?.close(); ports.delete(id); } });
     host.storage.onChanged.addListener(changes => { if (!win.isDestroyed() && trusted(win.webContents.getURL())) win.webContents.send('ve:storage-changed', changes); });
-    const reload = async () => { if (await prepareNavigation()) win.webContents.reload(); };
+    const reload = async () => { if (!backupActionBusy && await prepareNavigation()) win.webContents.reload(); };
     win.webContents.on('before-input-event', (event, input) => {
       if (input.type !== 'keyDown') return;
       const key = input.key.toLowerCase();
@@ -127,7 +148,7 @@ if (!app.requestSingleInstanceLock()) { app.quit(); } else {
     await win.loadURL(demo ? `${demo.origin}/play?saveId=90001` : `https://${environment === 'production' ? '' : `${environment}.`}voyage.io`);
     console.log(`Voyage Expanded Desktop: ${smoke ? 'test' : 'live'}; save: ${dataDir}; browser profile: ${sessionDir}`);
     if (smoke) {
-      try { await require('./smoke.cjs').run({ win, host, demo, prepareNavigation }); quitting = true; win.destroy(); app.exit(0); }
+      try { await require('./smoke.cjs').run({ win, host, demo, prepareNavigation, backups }); quitting = true; win.destroy(); app.exit(0); }
       catch (error) { console.error(error); quitting = true; win.destroy(); app.exit(1); }
     }
   }).catch(error => { console.error(error); if (!smoke) dialog.showErrorBox('Voyage Expanded could not start', error.message); quitting = true; app.exit(1); });
