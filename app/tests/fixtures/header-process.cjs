@@ -55,6 +55,15 @@ require('../../smoke.cjs').run = async ({ win }) => {
   assert.equal(appearances.experiment.color,'rgb(80, 180, 255)');
   assert.equal(appearances.experiment.background,'rgb(20, 50, 80)');
   assert.equal(appearances.experiment.border,'rgb(50, 140, 220)');
+  const infoTypography = () => page(`(() => {
+    const properties=['font-family','font-size','font-weight','line-height','letter-spacing'];
+    return [...document.querySelector('[data-ve-header-info]').children].map(node=>{const style=getComputedStyle(node);return Object.fromEntries(properties.map(property=>[property,style.getPropertyValue(property)]));});
+  })()`);
+  const expectedTypography = Object.fromEntries(['font-family','font-size','font-weight','line-height','letter-spacing'].map(property=>[property,appearances.standard.properties[property]]));
+  const checkInfoTypography = async () => {
+    for (const typography of await infoTypography()) assert.deepEqual(typography,expectedTypography,'Date, location and separator match pill labels even when compact controls hide their labels.');
+  };
+  await checkInfoTypography();
   await page('experimentButton.click()');
   assert.equal(await page('experimentClicks'),1,'The original experiments handler remains connected.');
   const read = () => page(`(() => {
@@ -89,6 +98,7 @@ require('../../smoke.cjs').run = async ({ win }) => {
     } catch (error) { throw Error(error.message + '\n' + JSON.stringify(await read())); }
     const reading = await read();
     checkGeometry(reading);
+    await checkInfoTypography();
     const spacing = await page(`(() => {
       const toggle=document.querySelector('[data-ve-party-toggle]').getBoundingClientRect(),header=document.querySelector('[data-ve-header]').getBoundingClientRect(),character=document.querySelector('#voyage-character-panel-trigger').getBoundingClientRect(),portraits=document.querySelector('[data-voyage-nearby-portraits]').getBoundingClientRect();
       return {leftDifference:toggle.left-character.left,above:toggle.top-header.bottom,below:portraits.top-toggle.bottom};
@@ -156,6 +166,7 @@ require('../../smoke.cjs').run = async ({ win }) => {
   assert.equal(await page('document.querySelectorAll("#voyage-character-panel-trigger").length'),1,'Native controls were never cloned or reparented.');
   await win.webContents.executeJavaScriptInIsolatedWorld(999, [{code:'VoyageAppServices.storage.local.set({"voyage-expanded:settings:v1:time":true})'}]);
   await until(() => page('document.querySelector("[data-ve-header-info]")?.tagName === "DIV"'), 'Journal clock controls');
+  await checkInfoTypography();
   assert.equal(await page('document.querySelector("[data-voyage-time-row]").getBoundingClientRect().height'),0,'Original clock row is hidden in the desktop layout.');
   await page('window.mapClicks=0;document.querySelector("[data-voyage-time-row]").children[2].onclick=()=>mapClicks++;document.querySelector("[data-ve-header-info]").children[2].click()');
   assert.equal(await page('mapClicks'),1,'Centered location delegates to the Journal map action.');

@@ -152,7 +152,7 @@
           button.setAttribute('data-slot', 'voyage-text'); button.className = label.className;
           button.textContent = label.textContent;
           const textStyle = getComputedStyle(next.texts[index]);
-          for (const property of ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'color']) button.style.setProperty(property, textStyle.getPropertyValue(property), 'important');
+          button.style.setProperty('color', textStyle.color, 'important');
           button.title = index ? 'Open map' : 'Edit day and time';
           button.setAttribute('aria-label', `${button.title}: ${label.textContent}`);
           button.addEventListener('click', () => current?.clockRow?.children[index * 2]?.click());
@@ -180,6 +180,16 @@
     header.removeAttribute('data-ve-header-stacked');
     const reference = right.querySelector('#voyage-settings-trigger');
     const referenceStyle = getComputedStyle(reference);
+    // Measure the visible standard label before compact mode hides pill text.
+    // Apply its typography to both the native-info and Journal-control variants.
+    const referenceLabel = [...reference.querySelectorAll('span')].find(span => !span.children.length && span.textContent.trim()) || reference;
+    const labelStyle = getComputedStyle(referenceLabel);
+    for (const target of [proxy, ...proxy.children]) {
+      for (const property of ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing']) {
+        const value = labelStyle.getPropertyValue(property);
+        if (target.style.getPropertyValue(property) !== value) target.style.setProperty(property, value, 'important');
+      }
+    }
     const experiment = [...right.querySelectorAll('button')].find(button => /\bexperiments?\b/i.test(button.getAttribute('aria-label') || ''));
     if (current.experiment !== experiment) {
       current.experiment?.removeAttribute('data-ve-header-experiments');
