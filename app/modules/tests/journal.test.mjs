@@ -31,7 +31,7 @@ test('rewinds delete future turns and notes without recording spurious item loss
 });
 test('inventory, quest, and time changes between turns are recorded once with before/after values',async()=>{
   const h=setup();await h.store.capture(source());const next=source();next.clock={day:2,timeOfDay:'dawn'};next.inventories.Hero.coin.quantity=7;next.quests.q={id:'q',name:'The keeper',status:'accepted',markers:{}};
-  await h.store.capture(next);await h.store.capture(next);const records=await h.store.read(id),changes=records.filter(r=>r.kind==='changes');assert.equal(changes.length,1);assert.equal(changes[0].data.betweenTurns,true);assert.deepEqual(changes[0].data.events.map(e=>e.category),['time','inventory','quests']);assert.equal(changes[0].data.events[1].after.quantity,7);
+  await h.store.capture(next);await h.store.capture(next);const records=await h.store.read(id),changes=records.filter(r=>r.kind==='changes');assert.equal(changes.length,1);assert.equal(changes[0].data.betweenTurns,true);assert.deepEqual(changes[0].data.events.map(e=>e.category),['other','inventory','quests']);assert.equal(changes[0].data.events[1].after.quantity,7);
 });
 test('party membership changes do not masquerade as gained or lost inventories',()=>{const a=source(),b=source();b.inventories={Companion:a.inventories.Hero};assert.deepEqual(J.changes(a,b),[]);});
 test('quest tick markers recover acceptance and completion without inventing acceptance at installation',async()=>{

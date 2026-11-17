@@ -113,7 +113,9 @@
               const observation=records.get(id);
               events.push(...(observation.data.events||[]).map(event=>({...event,observed:observation.kind==='changes',betweenTurns:observation.data.betweenTurns,fromTick:observation.data.fromTick,toTick:observation.data.toTick})));
             }
-            const unique=[...new Map(events.map(event=>[`${event.category}:${event.text}`,event])).values()];
+            // Older saves may contain the retired time category; keep the observation without a time tag.
+            const normalized=events.map(event=>event.category==='time'?{...event,category:'other'}:event);
+            const unique=[...new Map(normalized.map(event=>[`${event.category}:${event.text}`,event])).values()];
             const matchesCategory=category==='all'||category==='story'||category==='notes'&&!!note?.data.text||unique.some(event=>event.category===category);
             const searchable=[J.story(native),...J.inputs(native).map(input=>`${input.name} ${input.text}`),...unique.map(event=>event.text),note?.data.text||'',String(record.tick),J.clockLabel(record.clock)].join('\n').toLocaleLowerCase();
             offset++;

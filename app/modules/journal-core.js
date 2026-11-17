@@ -46,7 +46,7 @@
   function changes(before, after) {
     if (!before) return [];
     const result = [];
-    if (stable(before.clock)!==stable(after.clock)) result.push({category:'time',text:`${clockLabel(before.clock)} → ${clockLabel(after.clock)}`,before:before.clock,after:after.clock});
+    if (stable(before.clock)!==stable(after.clock)) result.push({category:'other',text:`${clockLabel(before.clock)} → ${clockLabel(after.clock)}`,before:before.clock,after:after.clock});
     for (const name of new Set([...Object.keys(before.inventories),...Object.keys(after.inventories)])) {
       // Changing party membership is not an item gain or loss.
       if (!Object.hasOwn(before.inventories,name)||!Object.hasOwn(after.inventories,name)) continue;

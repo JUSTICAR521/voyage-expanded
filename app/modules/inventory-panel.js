@@ -30,11 +30,11 @@
     .window{width:100%;height:calc(100dvh - 48px);background:var(--vs-panel);border:1px solid var(--color-voyage-modal-border-subtle,#383838);border-radius:16px;box-shadow:0 24px 80px #0008;display:flex;flex-direction:column;overflow:hidden}
     header{padding:20px 24px;border-bottom:1px solid var(--vs-border);display:flex;align-items:center;justify-content:space-between;gap:20px}
     h1{font-size:24px;font-weight:600;line-height:32px;letter-spacing:0;margin:0;color:var(--vs-text)}h2{font-size:13px;font-weight:500;line-height:18px;text-transform:uppercase;margin:0 0 18px}p{margin:5px 0}
-    .top{padding:16px 24px 20px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid var(--vs-border)}
+    .top{position:relative;z-index:1;padding:14px 24px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid var(--vs-border)}
     .toolbar-row{display:flex;align-items:center;gap:8px}.toolbar-row>.close{margin-inline-start:auto}.character-choice{width:100%;min-width:0}
     .toolbar-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto;min-width:0;max-width:100%}.toolbar-actions>button{min-width:0;white-space:nowrap}
-    .search-actions{display:flex;align-items:center;gap:12px}.search-actions>.search-field{flex:1;min-width:0}
-    .inventory-filters{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}.inventory-filters::-webkit-scrollbar{display:none}.inventory-filters>button{flex:none;padding-inline:12px}.inventory-filters>button[aria-pressed=true]{border-color:var(--color-voyage-btn-outlined-border,#646362);background:var(--color-voyage-surface-card,#111417);color:var(--vs-text)}
+    .search-actions{display:flex;align-items:center;gap:8px}.search-actions>.search-field{flex:1;min-width:0}.search-actions>.destination-picker{flex:0 0 160px}
+    @media(max-width:440px){.search-actions{flex-wrap:wrap}.search-actions>.search-field{min-width:100%}.search-actions>.destination-picker{flex:1}}
     .root-label{min-width:0;overflow-wrap:anywhere}.root-suffix{font-weight:400;font-size:11px;color:var(--vs-muted)}
     .columns .carried-tree{margin-top:0}
     .columns .carried-organizer,.columns .stored-destination{width:100%;min-width:0}
@@ -252,7 +252,7 @@
     };
     const backup = host.backup || nativeBackup;
     let panel = null, snapshot = null, persistedShape = null, record = null, selected = '', busy = false, openedFrom = null;
-    let root, content, status, controls, characterSelect, search, categoryFilter='all';
+    let root, content, status, controls, characterSelect, search, categoryPicker, categoryFilter='all';
     let destination = '', statusMessage = '', statusError = false, areaTimer = null, areaPollBusy = false;
     let displayContext = null, automaticCharacter = false;
     let cancelImportPrompt = null, restoreImportFocus = false, cancelDeletePrompt = null, deleteFocusLabel = '';
@@ -850,6 +850,7 @@
     function render() {
       if (!panel) return;
       closeItemMenu(false);
+      categoryPicker?.closePicker();
       content.replaceChildren(); controls.replaceChildren();
       let fallbackCharacter=null;
       if (snapshot && !automaticCharacter) {
@@ -861,25 +862,20 @@
         fallbackCharacter=characterSelect;
       }
       const filter = search?.value || '';
-      search = el('input', 'search'); search.type = 'search'; search.placeholder = 'Search Possessions'; search.setAttribute('aria-label', 'Search stored and carried items'); search.value = filter;
+      search = el('input', 'search'); search.type = 'search'; search.placeholder = 'Search your inventory…'; search.setAttribute('aria-label', 'Search your inventory'); search.value = filter;
       search.addEventListener('input', () => renderLists()); const searchField = el('div', 'search-field');
       const searchIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       searchIcon.setAttribute('class', 'search-icon'); searchIcon.setAttribute('viewBox', '0 0 24 24'); searchIcon.setAttribute('aria-hidden', 'true'); searchIcon.setAttribute('focusable', 'false');
       const searchLens = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); searchLens.setAttribute('cx', '10.5'); searchLens.setAttribute('cy', '10.5'); searchLens.setAttribute('r', '7.5');
       const searchHandle = document.createElementNS('http://www.w3.org/2000/svg', 'path'); searchHandle.setAttribute('d', 'M16 16l5 5');
       searchIcon.append(searchLens, searchHandle); searchField.append(search, searchIcon);
-      const x = button('', close, 'close'); x.append(crossIcon()); x.setAttribute('aria-label', 'Close inventory'); x.disabled = busy;
-      const searchActions = el('div', 'search-actions'); searchActions.append(searchField,x);
+      const searchActions = el('div', 'search-actions'); searchActions.append(searchField);
       controls.append(searchActions);
       if(fallbackCharacter)controls.insertBefore(fallbackCharacter,searchActions);
-      const filterBar=el('div','inventory-filters');filterBar.setAttribute('role','group');filterBar.setAttribute('aria-label','Filter possessions');
       const items=[...Object.values(snapshot?.characters?.[selected]?.inventory||{}),...(record?.vault.items||[]).map(entry=>entry.item)];
       const filters=C.inventoryFilters(items);if(!filters.some(entry=>entry.value===categoryFilter))categoryFilter='all';
-      for(const choice of filters){
-        const pill=button(choice.label,()=>{categoryFilter=choice.value;for(const b of filterBar.children)b.setAttribute('aria-pressed',String(b===pill));renderLists();});
-        pill.setAttribute('aria-label',`Filter possessions by ${choice.label}`);pill.setAttribute('aria-pressed',String(choice.value===categoryFilter));pill.disabled=busy;filterBar.append(pill);
-      }
-      controls.append(filterBar);
+      categoryPicker=createPicker(filters,{value:categoryFilter,label:'Inventory category',disabled:busy,clearable:false});
+      categoryPicker.addEventListener('change',()=>{categoryFilter=categoryPicker.value;renderLists();});searchActions.append(categoryPicker);
       renderLists(); tell(statusMessage, statusError);
       const closeControl = root.querySelector('.close'); if (closeControl) closeControl.disabled = busy;
     }
@@ -1081,7 +1077,8 @@
       const veil = el('dialog', 'veil'), win = el('div', 'window'); veil.setAttribute('aria-label', 'Voyage Inventory'); veil.setAttribute('aria-modal', 'true');
       veil.addEventListener('cancel', event => { event.preventDefault(); close(); });
       controls = el('div', 'top'); content = el('main', 'main scroll-pane'); status = el('div', 'status'); status.setAttribute('role', 'status');
-      win.append(controls, content, status); veil.append(win); root.append(style, veil); document.body.append(panel);
+      const header=el('header'),dismiss=button('',close,'close');dismiss.append(crossIcon());dismiss.setAttribute('aria-label','Close inventory');header.append(el('h1','','Inventory'),dismiss);
+      win.append(header, controls, content, status); veil.append(win); root.append(style, veil); document.body.append(panel);
       root.addEventListener('pointerdown', event => {
         if (itemMenu&&!itemMenu.node.contains(event.target)&&event.target!==itemMenu.trigger) closeItemMenu(false);
       });
