@@ -1,0 +1,32 @@
+{
+  "page": [
+    "inventory-core.js",
+    "journal-core.js",
+    "bridge.js",
+    "time-bridge.js"
+  ],
+  "preload": [
+    "expanded-core.js",
+    "expanded-settings.js",
+    "inventory-core.js",
+    "item-details.js",
+    "carried-tree.js",
+    "inventory-operations.js",
+    "inventory-draft.js",
+    "inventory-lock.js",
+    "inventory-panel.js",
+    "voyage-adapter.js",
+    "time-ui.js",
+    "time-panel.js",
+    "journal-core.js",
+    "journal-panel.js",
+    "time-adapter.js"
+  ],
+  "worker": [
+    "inventory-core.js",
+    "journal-core.js",
+    "journal-store.js",
+    "journal-worker.js",
+    "inventory-worker.js"
+  ]
+}

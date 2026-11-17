@@ -1,8 +1,0 @@
-Voyage icon
-Source: https://voyage.io/favicon-voyage.svg?v=2026-08-31
-Retrieved: 2026-11-16
-
-The original white sail artwork and padding are preserved. The solid dark
-background was removed so the icon has transparent edges on the taskbar.
-voyage.png and voyage.ico are rendered from it by desktop/build-icon.cjs.
-The icon identifies the Voyage website opened by this independent desktop wrapper.

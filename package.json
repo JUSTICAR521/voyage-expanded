@@ -1,17 +1,22 @@
 {
   "name": "voyage-expanded",
-  "version": "0.1.1",
+  "version": "0.2.0-preview.1",
   "private": true,
-  "description": "Inventory organization and location storage for Voyage",
+  "description": "Voyage Expanded application with Inventory and Journal",
   "license": "MIT",
-  "engines": { "node": ">=24" },
+  "main": "app/main.cjs",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "build": "node \"Voyage Expanded/build.mjs\"",
-    "test": "node --test \"Voyage Expanded/tests/*.test.mjs\"",
-    "preview": "node \"Voyage Expanded/tests/serve.mjs\"",
-    "desktop": "node desktop/launch.mjs",
-    "desktop:test": "node --test desktop/tests/*.test.cjs",
-    "desktop:smoke": "node desktop/launch.mjs --smoke-test",
-    "desktop:package": "node desktop/package.mjs"
+    "start": "node app/launch.mjs",
+    "test": "node --test \"app/modules/tests/*.test.mjs\" \"app/tests/*.test.cjs\"",
+    "build": "node app/package.mjs",
+    "smoke": "node app/launch.mjs --smoke-test",
+    "preview": "node app/modules/tests/serve.mjs"
+  },
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "45.3.3"
   }
 }

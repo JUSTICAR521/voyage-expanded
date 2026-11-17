@@ -1,87 +1,86 @@
 # Voyage Expanded
 
-An independent community extension for **Voyage**, built for Chromium-based browsers. Organize your equipment, manage containers, and leave possessions at campaign locations. This initial release includes the Inventory module.
+An independent community desktop application for **Voyage**, built with Electron. Inventory, Journal, and the responsive game interface run directly in the application. Electron is the sole development and release target; a browser extension is not required.
 
-**Version 0.1.1 · MIT licensed**
+**0.2.0-preview.1 · Windows x64 · MIT licensed**
 
-[Download 0.1.1](https://github.com/JUSTICAR521/voyage-expanded/releases/tag/v0.1.1) · [Inventory guide](<Voyage Expanded/share-docs/README.md>) · [Published 0.1.1 guide](https://github.com/JUSTICAR521/voyage-expanded/blob/v0.1.1/Voyage%20Expanded/share-docs/README.md) · [Report an issue](https://github.com/JUSTICAR521/voyage-expanded/issues)
+This is an unsigned portable preview without an installer or automatic updates. Live play requires Voyage's online service and normal account and State Editor permissions. The application does not provide an offline game engine.
 
-Version 0.1.1 keeps the Applying Changes screen visible throughout an Inventory batch, fixes Settings navigation highlighting, and adds a compass icon to the Voyage Expanded settings entry. Documentation includes compatibility checks on independent Production, Beta, and Alpha campaigns. Day & Time is not included in this release or the current `main` branch.
+## Features
 
-## Inventory settings
+- **Inventory:** equipment, containers, stored possessions, drag-and-drop organization, guarded Apply/Cancel/Discard, and JSON backup import/export.
+- **Journal:** permanent capture of available full turns, search, categories, earlier versions, personal entries, and separate Journal import/export. Earlier story text that Voyage no longer supplies cannot be reconstructed.
+- **Game interface:** wider responsive layout, centered date/time and location, compact icon buttons when space is limited, matching blue Experiments button, and party hide/show control.
+- **Desktop integration:** persistent sign-in, portable local records, transparent Voyage icon, and no application menu bar.
 
-Open Voyage's **Settings → Voyage Expanded**.
+The Journal button opens the local archive. Date/time opens the clock editor and location opens Map. Module preferences are in **Settings → Voyage Expanded**.
 
-| Setting | Default | What it does |
-| --- | --- | --- |
-| Inventory | On | Adds the Inventory window, containers, local item labels, and storage at campaign areas. |
-| Hide Native Inventory | On | Hides Voyage's Inventory tab while the Inventory module is enabled. Turn it off to keep both interfaces. |
+## Development
 
-The Settings section remains available when Inventory is off. Module preferences apply to this browser profile; possessions remain separate for each campaign and character. Turning Inventory off retains its local records. If an Inventory draft is open, its Apply / Cancel / Discard decision still applies.
-
-## Inventory
-
-- Drag possessions into backpacks, pouches, scabbards, and nested containers.
-- Deposit and recover individual items or filled containers at the character's current campaign area.
-- Equip and unequip, split and merge stacks, delete quantities, and inspect full item details.
-- Give items local display names without changing their actual Voyage names.
-- Stage changes while the window is open; closing offers **Discard**, **Cancel**, and **Apply**.
-- Export and import manual backups to move records between browsers or computers.
-
-Carried container contents remain ordinary carried items to Voyage. Deposited items are removed from the game's inventory and kept in this extension's browser-local storage. **A Voyage save alone does not contain those stored possessions.** Export them before uninstalling, clearing extension/profile data, or changing computers. There is no cloud sync.
-
-## Install
-
-1. Download **Voyage.Expanded.zip** from [Releases](https://github.com/JUSTICAR521/voyage-expanded/releases) and extract it.
-2. Keep the extracted **Voyage Expanded** folder in a permanent location.
-3. Open your browser's Extensions page (for example, `chrome://extensions` or `edge://extensions`) and enable **Developer mode**.
-4. Choose **Load unpacked** and select the folder directly containing `manifest.json`.
-5. Allow Voyage site access if prompted, then refresh Voyage.
-
-Use only one installation of Voyage Expanded at a time. To move from an earlier installation, export every campaign/character record you need, disable the old build, load this one, and import each backup in the matching campaign. Verify the imported possessions before removing the old extension.
-
-For future updates, replace the files **inside the same installed folder**, reload the extension, and refresh Voyage. Do this separately in each browser. No store installation, automatic updater, extra account, API key, or file-URL permission is needed.
-
-## Compatibility and access
-
-The extension targets desktop Chromium-based browsers. You need the campaign's **State Editor** permission to save changes. The extension reads the current World's categories, tiers, equipment slots, party, and locations. Compatibility still depends on Voyage's current UI and state format. Start with a test copy of your campaign.
-
-One installation supports Voyage's **Production, Beta, and Alpha** environments. There is no separate extension to install when changing environments. Independent test campaigns passed the live inventory checks in each environment on November 16, 2026. Future Voyage updates can change the UI or state format. See [validation notes](VALIDATION.md) for the checks and their limits.
-
-**Switching environments with a single save may or may not work properly.** Within the same browser profile and extension installation, Inventory uses the same local record for the same campaign and character across environments. Voyage may open an older or incompatible state, while extension storage does not automatically rewind with it. Finish any pending changes and export a backup before switching. Avoid editing the same save in multiple environments at once. Existing checks can block transfers when an older or mismatched state is detected; they do not guarantee a successful transition.
-
-## Privacy and permissions
-
-No analytics, remote executable code, or developer-operated server. The extension uses your existing Voyage session. Local storage contains stored possessions, organization, labels, pending-operation information, and preferences. Manual backup JSON can include campaign/character details; keep it private. Item images are loaded from their supplied HTTPS hosts with no-referrer image requests.
-
-The manifest requests Voyage site access, `storage`, `unlimitedStorage` for local records, and `downloads` for manual exports. Disabling a module does not revoke the package's browser permissions. No module asks a model to generate text or images.
-
-## Source and development
-
-An experimental [desktop app](desktop/README.md) runs the existing Inventory interface in Electron without installing a browser extension. Its portable Windows build opens live Voyage, retains the browser sign-in session, and saves Expanded inventory records in a `Save` folder beside the executable. It includes a responsive game toolbar, party visibility control, and a transparent Voyage icon. The signed-in Alpha interface and session reuse have been checked in the running app; inventory transactions are covered by isolated packaged smoke tests. See the desktop guide for the current verification limits and build instructions. The extension release and its dependency-free build remain separate.
-
-```
-Voyage Expanded/         Single editable source, tests, and documentation
-dist/Voyage Expanded/    Generated release folder (not tracked by Git)
-dist/Voyage Expanded.zip Generated release ZIP (not tracked by Git)
-```
-
-The `dist` folder is created when you run `npm run build`; it is not included in a fresh repository checkout.
-
-Load `Voyage Expanded` unpacked to work from this checkout. Git branches select the code being developed; there is no separate Dev folder or manifest. For regular play, use a published release in a permanent folder outside the checkout, so switching branches cannot change that installation. Export inventory records before switching installations because separate installations have separate browser storage.
-
-All shipped JavaScript is readable, unminified source. The browser extension has no runtime or build dependencies to install. With Node.js 24 or newer:
+Use Windows x64 and Node.js 24 or newer with npm. From the repository root:
 
 ```sh
-npm run build
-npm test
-npm run preview
+npm ci --ignore-scripts
+node node_modules/electron/install.js
+npm start
 ```
 
-The preview uses a synthetic campaign and never connects to Voyage. The build uses an explicit file allowlist, copies runtime files without transformations, and produces a deterministic ZIP. CI rebuilds the package, runs tests, and checks the generated runtime copy. Package tests compare the release folder and ZIP against the source. ZIP files are release attachments rather than Git history.
+Electron and the packaging tool are pinned in the root package and lockfile. The explicit install step downloads the pinned Electron binary. There is one dependency installation and one application entry point.
 
-See [development notes](<Voyage Expanded/README.md>). Contributions and bug reports are welcome; do not attach credentials or private campaign backups to public issues.
+```sh
+npm start -- --alpha   # Alpha; --beta selects Beta; default is Production
+npm test              # Module, persistence, runtime, packaging, and Electron tests
+npm run smoke         # Hidden Electron test with an isolated synthetic campaign
+npm run build         # Windows portable package, packaged smoke test, ZIP + SHA-256
+npm run preview       # Optional local synthetic UI fixture
+```
 
-## License
+After setup, `Start Voyage.cmd` also launches the source application. Only one normal instance runs at a time, including source and packaged copies.
 
-[MIT](LICENSE), copyright 2026 JUSTICAR521. This community extension is not an official Voyage product and is not affiliated with Voyage. The license covers the extension's code and documentation, not Voyage's service, Worlds, or player content.
+Builds go to unique directories under `dist/app/`. `dist/app/latest.json` identifies the most recent successful build. Extract the complete ZIP before opening **Voyage Expanded.exe**. Keep its DLLs and resources together. End users do not need Node.js or npm.
+
+Windows CI installs dependencies, runs tests, packages and smoke-tests the executable, and uploads the portable ZIP and checksum. Packages use an explicit source allowlist and verified source hashes. No local saves, login profiles, credentials, backups, or development dependencies are shipped.
+
+## Saves, sign-in, and upgrading
+
+The active local database lives beside the executable:
+
+```text
+Voyage Expanded.exe
+Save/
+  inventory.json
+  storage.json
+```
+
+`inventory.json` retains the existing format and holds Inventory records, Journal records, personal notes, and module preferences. Confirmed changes use serialized writes and atomic replacement. The combined database limit is 80 MB. `storage.json` identifies an initialized Save directory. Source runs use `app/Save/`.
+
+Close the application before moving it or copying **Save** into a new application folder. Use a writable installation folder. A missing or corrupt initialized database stops startup instead of silently replacing your records. Existing packaged saves remain compatible with this layout cleanup. For a previous source checkout, copy its `desktop/Save/` into `app/Save/` while the application is closed.
+
+Sign-in data and browser caches remain in `%APPDATA%/Voyage Expanded Desktop/live/`; this established profile path is retained across upgrades. Moving **Save** does not move your login. Voyage may require sign-in again after session expiry, revocation, or sign-out. The actual live campaign remains on Voyage's servers.
+
+Inventory exports go to **Downloads/Voyage Inventory**. Journal exports go to **Downloads/Voyage Journal/save-<save>-<party>/**. Inventory backups do not include Journal data.
+
+When migrating from an older browser extension, finish pending edits, export Inventory and Journal separately, and import each into the matching campaign and party in the application. Records are not shared automatically. Use one installation at a time for a campaign; separate installations do not share local locks. Cloud synchronization is not included.
+
+## Project layout
+
+```text
+package.json / package-lock.json   Single application package
+app/main.cjs                      Electron entry point
+app/runtime-files.json            Explicit page, preload, and worker script order
+app/modules/                      Inventory, Journal, and game integration
+app/tests/                        Electron host and application checks
+app/modules/tests/                Module checks and synthetic UI fixtures
+app/package-source.mjs            Release source allowlist
+app/package.mjs                   Windows packaging and packaged smoke test
+```
+
+See [application architecture](app/README.md) and the [portable app guide](app/share-docs/README.txt). The extension manifest, extension ZIP builder, and duplicate generated core files have been retired. Previous extension releases and source remain in Git history; current development targets the application only. `VALIDATION.md` contains historical feature observations, not current build instructions.
+
+## Verification and limits
+
+Automated checks cover Inventory and Journal logic, campaign isolation, disk persistence, save migration, sign-in profile persistence with synthetic browser data, responsive headers, navigation guards, and release data exclusion. Packaging launches the executable outside the repository working directory, verifies bundled hashes, exercises Inventory and Journal persistence and exports, and removes synthetic saves before creating the ZIP.
+
+Synthetic tests do not establish complete live compatibility with every Voyage environment or authentication provider. Live clock editing through Voyage's State Editor and running this preview on a second Windows computer still require verification. The app depends on Voyage's frontend structure and service permissions. Voice input and other browser permissions are currently disabled.
+
+Application code is MIT licensed. Packages include Electron and Chromium license notices. Voyage artwork attribution is recorded in [app/assets/SOURCE.txt](app/assets/SOURCE.txt). Voyage Expanded is not an official Voyage application.
