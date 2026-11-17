@@ -35,6 +35,8 @@ async function run({ win, host, demo, prepareNavigation }) {
   await isolated('globalThis.VoyageDesktopInventory.open()');
   const root = `document.querySelector('[data-voyage-storage="storage-window"]').shadowRoot`;
   await until(() => page(`${root}.textContent.includes('Iron Shortsword')`), 'rendered inventory');
+  assert.equal(await page(`[...${root}.querySelectorAll('button')].some(button=>button.textContent==='Refresh')`),false);
+  assert.equal(await page(`(()=>{const r=${root},search=r.querySelector('.search').getBoundingClientRect(),close=r.querySelector('.close').getBoundingClientRect();return Math.abs(search.top+search.height/2-close.top-close.height/2)<1&&close.left>search.right})()`),true,'Inventory close button shares the search row.');
   console.log('SMOKE: isolated preload; no extension; existing inventory rendered.');
   const action = async (uuid, label) => {
     await page(`${root}.querySelector('[data-uuid="${uuid}"] [data-item-menu-key]').click()`);
@@ -94,6 +96,7 @@ async function run({ win, host, demo, prepareNavigation }) {
   await page('document.querySelector("#voyage-journal-panel-trigger").click()');
   const journalRoot = `document.querySelector('[data-voyage-journal]').shadowRoot`;
   await until(() => page(`!!document.querySelector('[data-voyage-journal]') && ${journalRoot}.textContent.includes('The synthetic adventurer arrives at the inn.')`), 'desktop Journal archive');
+  assert.equal(await page(`${journalRoot}.querySelectorAll('input[type="checkbox"]').length`),0,'Journal history and automatic backup checkboxes are removed.');
   const identity = {saveId:'90001',partyId:'example-party'};
   const query = await host.backup({type:'voyage-journal',op:'query',identity});
   assert.equal(query.ok,true); assert.equal(query.cards.length,1);

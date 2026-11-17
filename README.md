@@ -2,14 +2,14 @@
 
 An independent community desktop application for **Voyage**, built with Electron. Inventory, Journal, and the responsive game interface run directly in the application. Electron is the sole development and release target; a browser extension is not required.
 
-**0.2.0-preview.3 · Windows x64 · MIT licensed**
+**0.2.0-preview.4 · Windows x64 · MIT licensed**
 
 This is an unsigned portable preview without an installer or automatic updates. Live play requires Voyage's online service and normal account and State Editor permissions. The application does not provide an offline game engine.
 
 ## Features
 
 - **Inventory:** equipment, containers, stored possessions, drag-and-drop organization, guarded Apply/Cancel/Discard, and JSON backup import/export.
-- **Journal:** permanent capture of available full turns, search, categories, earlier versions, personal entries, and separate Journal import/export. Earlier story text that Voyage no longer supplies cannot be reconstructed.
+- **Journal:** capture of available full turns in the current canon, search, categories, and personal entries. Revisions replace older versions; confirmed rewinds delete later turns and their associated entries. Ordinary rolling summaries do not delete captured turns. Earlier story text that Voyage no longer supplies cannot be reconstructed.
 - **Game interface:** wider responsive layout, centered date/time and location, compact icon buttons when space is limited, matching blue Experiments button, and party hide/show control.
 - **Desktop integration:** persistent sign-in, portable local records, transparent Voyage icon, and no application menu bar.
 
@@ -60,7 +60,7 @@ Sign-in data and browser caches remain in `%APPDATA%/Voyage Expanded Desktop/liv
 
 Use **Settings → Voyage Expanded → Backups** for **Export Backup** and **Import Backup**. One JSON file includes Inventory, Journal entries, personal notes, and module preferences for **all locally stored campaigns**, and is saved in **Downloads/Voyage Expanded**. Login data and Voyage's online campaign state are excluded.
 
-Import previews the number of campaigns and records before confirmation. **Restore Backup replaces all local records and preferences**, writes a `before-restore` recovery copy in the same Downloads folder, then reloads the app. Invalid or damaged backups and previews made stale by subsequent local changes are rejected without replacing the database. Resolve unfinished Inventory transactions before restoring. Automatic Inventory transaction recovery files and Journal recovery copies retain their existing formats and folders.
+Import previews the number of campaigns and records before confirmation. **Restore Backup replaces all local records and preferences**, writes a `before-restore` recovery copy in the same Downloads folder, then reloads the app. Invalid or damaged backups and previews made stale by subsequent local changes are rejected without replacing the database. Resolve unfinished Inventory transactions before restoring. Automatic Inventory transaction recovery files retain their existing format and folder. Journal automatic exports have been removed; use the combined manual backup controls. Older Journal data is cleaned to current canon on startup and backup import.
 
 When migrating from an older browser extension, finish pending edits, export Inventory and Journal separately, and select each file through the same **Import Backup** control in Settings. Older Inventory files open the existing Inventory review flow; older Journal files merge into the matching current campaign and party. They do not replace the combined database. Records are not shared automatically. Use one installation at a time for a campaign; separate installations do not share local locks. Cloud synchronization is not included.
 

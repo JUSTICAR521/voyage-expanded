@@ -10,13 +10,28 @@
         if(found.version!==1||!Array.isArray(found.refs)||J.key(found.identity)!==key)throw Error('The saved Journal index has an unsupported format.');
         return J.clone(found);
       }
-      return {version:1,identity:J.identity(identity),createdAt:now(),updatedAt:now(),refs:[],turns:{},questMarkers:[],notes:{},latest:null,autoExport:true,backedUp:[],backupError:''};
+      return {version:1,identity:J.identity(identity),createdAt:now(),updatedAt:now(),refs:[],turns:{},questMarkers:[],notes:{},latest:null,autoExport:false,backedUp:[],backupError:''};
     }
     const descriptor=(record,fingerprint)=>({id:record.id,kind:record.kind,tick:record.tick,recordedAt:record.recordedAt,hash:fingerprint,entryId:record.data.entryId||null});
     async function save(meta,records=[]) {
-      const key=J.key(meta.identity),patch=Object.fromEntries(records.map(record=>[J.recordKey(meta.identity,record.id),record]));
+      // The index and discarded contents change in one atomic storage write.
+      const before=meta.refs,ceiling=meta.latest?.tick??Infinity;
+      const fences=[...(meta.rewindFences||[]),...(meta.rewindFence?[meta.rewindFence]:[]),...before.filter(ref=>ref.kind==='rewind').map(ref=>({tick:ref.tick,recordedAt:ref.recordedAt}))];
+      meta.rewindFences=[...new Map(fences.map(fence=>[`${fence.tick}:${fence.recordedAt}`,fence])).values()];delete meta.rewindFence;
+      for(const tick of Object.keys(meta.turns))if(Number(tick)>ceiling)delete meta.turns[tick];
+      const entries=new Set(before.filter(ref=>ref.tick<=ceiling&&!meta.rewindFences.some(fence=>ref.tick>fence.tick&&ref.recordedAt<=fence.recordedAt)&&(ref.kind==='turn'?meta.turns[ref.tick]?.id===ref.id:['quest','changes'].includes(ref.kind)&&(!ref.entryId||meta.turns[ref.tick]?.id===ref.entryId))).map(ref=>ref.id));
+      meta.refs=before.filter(ref=>entries.has(ref.id)||ref.kind==='note'&&entries.has(ref.entryId)&&meta.notes[ref.entryId]===ref.id);
+      const kept=new Set(meta.refs.map(ref=>ref.id)),removed=before.filter(ref=>!kept.has(ref.id)).map(ref=>J.recordKey(meta.identity,ref.id));
+      for(const [tick,turn] of Object.entries(meta.turns))if(!kept.has(turn.id))delete meta.turns[tick];
+      meta.notes=Object.fromEntries(Object.entries(meta.notes).filter(([entry,note])=>entries.has(entry)&&kept.has(note)));
+      meta.backedUp=meta.backedUp.filter(id=>kept.has(id));meta.autoExport=false;meta.canonVersion=1;
+      const pending=new Map(records.map(record=>[record.id,record]));
+      const quests=meta.refs.filter(ref=>ref.kind==='quest');
+      const stored=quests.length?await recordsFor(meta,quests.filter(ref=>!pending.has(ref.id)).map(ref=>ref.id)):[];
+      meta.questMarkers=await Promise.all([...stored,...records.filter(record=>record.kind==='quest'&&kept.has(record.id))].flatMap(record=>record.data.events).map(event=>hash(event)));
+      const key=J.key(meta.identity),patch=Object.fromEntries(records.filter(record=>kept.has(record.id)).map(record=>[J.recordKey(meta.identity,record.id),record]));
       meta.updatedAt=now();patch[key]=meta;
-      await storage.set(patch);
+      await storage.set(patch,removed);
       const checked=(await storage.get(key))[key];
       if(J.stable(checked)!==J.stable(meta))throw Error('The Journal write could not be verified. Export your existing journal before retrying.');
       return meta;
@@ -43,12 +58,12 @@
       const meta=await metaFor(source.identity),records=[],previous=meta.latest;
       const rewind=previous&&source.tick<previous.tick;
       if(rewind) {
-        await add(meta,records,make(meta.identity,'rewind',source.tick,source.clock,{fromTick:previous.tick,toTick:source.tick}));
+        (meta.rewindFences??=[]).push({tick:source.tick,recordedAt:now()});
         for(const tick of Object.keys(meta.turns))if(Number(tick)>source.tick)delete meta.turns[tick];
       }
       for(const native of source.turns) {
-        // Summaries never replace full turns. A changed original is a new immutable revision.
-        if(/summary|compact/i.test(String(native.type||'')))continue;
+        // Summaries never replace full turns; revisions replace the current original.
+        if(native.tick>source.tick||/summary|compact/i.test(String(native.type||'')))continue;
         const fingerprint=await hash(native),existing=meta.turns[native.tick];
         if(existing?.hash===fingerprint)continue;
         const prior=meta.refs.filter(ref=>ref.kind==='turn'&&ref.tick===native.tick).at(-1);
@@ -74,10 +89,11 @@
       return {meta,changed:true};
     }
     return Object.freeze({
+      normalize:identity=>serial(async()=>{const meta=await metaFor(identity);if(meta.canonVersion!==1||meta.autoExport)return save(meta);return meta;}),
       capture:source=>serial(()=>capture(source)),
       index:identity=>serial(()=>metaFor(identity)),
       read:(identity,ids)=>serial(async()=>recordsFor(await metaFor(identity),ids)),
-      query:(identity,{search='',category='all',cursor=0,history=false}={})=>serial(async()=>{
+      query:(identity,{search='',category='all',cursor=0}={})=>serial(async()=>{
         if(typeof search!=='string'||!Number.isSafeInteger(cursor)||cursor<0)throw Error('Invalid Journal search.');
         const meta=await metaFor(identity),related=new Map();
         for(const ref of meta.refs)if(['changes','quest'].includes(ref.kind)){
@@ -85,7 +101,7 @@
         }
         const knownTicks=new Set(meta.refs.filter(ref=>ref.kind==='turn').map(ref=>ref.tick)),standalone=new Map();
         for(const ref of meta.refs)if(['changes','quest'].includes(ref.kind)&&!ref.entryId&&!knownTicks.has(ref.tick)&&!standalone.has(ref.tick))standalone.set(ref.tick,ref);
-        const turns=[...meta.refs.filter(ref=>ref.kind==='turn'&&(history||meta.turns[ref.tick]?.id===ref.id)),...standalone.values()].sort((a,b)=>b.tick-a.tick||b.recordedAt-a.recordedAt);
+        const turns=[...meta.refs.filter(ref=>ref.kind==='turn'&&meta.turns[ref.tick]?.id===ref.id),...standalone.values()].sort((a,b)=>b.tick-a.tick||b.recordedAt-a.recordedAt);
         const cards=[],query=search.toLocaleLowerCase();let offset=cursor;
         while(offset<turns.length&&cards.length<30) {
           const batch=turns.slice(offset,offset+30),ids=[...new Set(batch.flatMap(ref=>[ref.id,...(related.get(ref.id)||[]),...(related.get(`tick:${ref.tick}`)||[]),...(meta.notes[ref.id]?[meta.notes[ref.id]]:[])]))];
@@ -101,7 +117,7 @@
             const matchesCategory=category==='all'||category==='story'||category==='notes'&&!!note?.data.text||unique.some(event=>event.category===category);
             const searchable=[J.story(native),...J.inputs(native).map(input=>`${input.name} ${input.text}`),...unique.map(event=>event.text),note?.data.text||'',String(record.tick),J.clockLabel(record.clock)].join('\n').toLocaleLowerCase();
             offset++;
-            if(matchesCategory&&(!query||searchable.includes(query)))cards.push({record,note:note||null,events:unique,previousVersion:ref.kind==='turn'&&meta.turns[ref.tick]?.id!==ref.id});
+            if(matchesCategory&&(!query||searchable.includes(query)))cards.push({record,note:note||null,events:unique});
             if(cards.length===30)break;
           }
         }
@@ -118,7 +134,6 @@
         const [entry]=await recordsFor(meta,[entryId]),record=make(identity,'note',ref.tick,entry.clock,{entryId,text:value,previousId:previous||null});
         const records=[];await add(meta,records,record);meta.notes[entryId]=record.id;return save(meta,records);
       }),
-      configure:(identity,enabled)=>serial(async()=>{if(typeof enabled!=='boolean')throw Error('Invalid backup preference.');const meta=await metaFor(identity);meta.autoExport=enabled;return save(meta);}),
       backupPlan:(identity,all=false)=>serial(async()=>{
         const meta=await metaFor(identity),backed=new Set(meta.backedUp),refs=meta.refs.filter(ref=>all||!backed.has(ref.id)),chunks=[];
         // Independent chunks keep long campaigns exportable without one ever-growing download.
@@ -148,8 +163,8 @@
           const current=meta.turns[record.tick],prior=known.get(current?.id);
           if(!current||!meta.latest&&(!prior||record.data.previousId===prior.id||record.recordedAt>prior.recordedAt))meta.turns[record.tick]={id:record.id,hash:await hash(record.data.native)};
         }
-        if(!meta.latest)for(const rewind of meta.refs.filter(ref=>ref.kind==='rewind')){
-          for(const [tick,entry] of Object.entries(meta.turns))if(Number(tick)>rewind.tick&&known.get(entry.id).recordedAt<rewind.recordedAt)delete meta.turns[tick];
+        for(const rewind of [...meta.refs.filter(ref=>ref.kind==='rewind'),...(meta.rewindFences||[]),...(meta.rewindFence?[meta.rewindFence]:[])]){
+          for(const [tick,entry] of Object.entries(meta.turns))if(Number(tick)>rewind.tick&&known.get(entry.id).recordedAt<=rewind.recordedAt)delete meta.turns[tick];
         }
         for(const record of records.filter(r=>r.kind==='note').sort((a,b)=>a.recordedAt-b.recordedAt)) {
           const prior=known.get(meta.notes[record.data.entryId]);

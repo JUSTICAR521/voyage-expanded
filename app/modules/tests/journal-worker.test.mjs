@@ -9,7 +9,7 @@ const turn=tick=>({type:'complex',tick,playerInputs:{Hero:`Action ${tick}`},stor
 const snapshot=(tick,turns=[turn(tick)])=>({identity,tick,phase:'State',clock:{day:1,timeOfDay:'morning'},location:{},inventories:{},quests:{},turns});
 function worker(downloadState='complete'){
   let listener,number=0;const data={},downloads=[],changed=new Set(),clock={now:Date.now()},VoyageAppServices={
-    storage:{local:{get:async keys=>Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(key=>Object.hasOwn(data,key)).map(key=>[key,structuredClone(data[key])])),set:async values=>Object.assign(data,structuredClone(values))}},
+    storage:{local:{get:async keys=>Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(key=>Object.hasOwn(data,key)).map(key=>[key,structuredClone(data[key])])),set:async (values,removed=[])=>{Object.assign(data,structuredClone(values));for(const key of removed)delete data[key];}}},
     runtime:{id:'journal-test',onMessage:{addListener:fn=>listener=fn}},
     downloads:{download:async args=>{downloads.push({id:++number,state:Array.isArray(downloadState)?downloadState.shift():downloadState,filename:args.filename,packet:JSON.parse(decodeURIComponent(args.url.slice(args.url.indexOf(',')+1)))});return number;},search:async({id})=>downloads.filter(item=>item.id===id),onChanged:{addListener:fn=>changed.add(fn),removeListener:fn=>changed.delete(fn)}}
   };
@@ -20,10 +20,8 @@ function worker(downloadState='complete'){
   return {send,idle,downloads,data,clock,setDownloadState(state){downloadState=state;},complete(id,state='complete'){downloads.find(item=>item.id===id).state=state;for(const fn of changed)fn({id,state:{current:state}});}};
 }
 
-test('automatic Journal backups begin at 100 captured turns and retain every local record',async()=>{
-  const w=worker();await w.send({op:'capture',snapshot:snapshot(98,Array.from({length:99},(_,n)=>turn(n)))});await w.idle();assert.equal(w.downloads.length,0);
-  await w.send({op:'capture',snapshot:snapshot(99)});const meta=await w.idle();assert.equal(w.downloads.length,1);assert.equal(w.downloads[0].packet.records.length,100);assert.equal(meta.backedUp.length,100);assert.equal((await w.send({op:'read'})).records.length,100);
-  await w.send({op:'capture',snapshot:snapshot(99)});await w.idle();assert.equal(w.downloads.length,1);
+test('capturing over 100 turns never starts an automatic Journal export',async()=>{
+ const w=worker();await w.send({op:'capture',snapshot:snapshot(100,Array.from({length:101},(_,n)=>turn(n)))});const meta=await w.idle();assert.equal(w.downloads.length,0);assert.equal(meta.autoExport,false);assert.equal((await w.send({op:'read'})).records.length,101);
 });
 
 test('Journal backup acknowledgement waits for download completion',async()=>{
@@ -38,14 +36,14 @@ test('an interrupted Journal backup stays pending and manual retry includes pers
   w.setDownloadState('complete');assert.equal((await w.send({op:'export'})).ok,true);assert.equal((await w.idle()).backedUp.length,2);
 });
 
-test('disabling automatic backups retains 100 turns without downloading; manual export still works',async()=>{
-  const w=worker();await w.send({op:'configure',enabled:false});await w.send({op:'capture',snapshot:snapshot(99,Array.from({length:100},(_,n)=>turn(n)))});await w.idle();assert.equal(w.downloads.length,0);assert.equal((await w.send({op:'export'})).ok,true);assert.equal(w.downloads.length,1);
+test('automatic backups cannot be enabled; legacy manual export still works',async()=>{
+  const w=worker();assert.equal((await w.send({op:'configure',enabled:true})).ok,false);await w.send({op:'capture',snapshot:snapshot(99,Array.from({length:100},(_,n)=>turn(n)))});await w.idle();assert.equal(w.downloads.length,0);assert.equal((await w.send({op:'export'})).ok,true);assert.equal(w.downloads.length,1);
 });
 
 test('a second tab cannot rewind the archive until it takes over recording',async()=>{
   const w=worker();await w.send({op:'capture',snapshot:snapshot(5)});await w.idle();const second={...sender,tab:{id:6}};
   assert.equal((await w.send({op:'capture',snapshot:snapshot(2)},second)).recordingElsewhere,true);assert.equal((await w.send({op:'index'})).meta.latest.tick,5);
-  assert.equal((await w.send({op:'capture',snapshot:snapshot(2),takeOver:true},second)).ok,true);assert.equal((await w.send({op:'index'})).meta.latest.tick,2);await w.idle();
+  assert.equal((await w.send({op:'capture',snapshot:snapshot(2),takeOver:true},second)).waiting,true);assert.equal((await w.send({op:'index'})).meta.latest.tick,5);w.clock.now+=1001;await w.send({op:'capture',snapshot:snapshot(2)},second);assert.equal((await w.send({op:'index'})).meta.latest.tick,2);await w.idle();
 });
 
 test('an expired recording owner can be replaced and foreign sites cannot read Journal records',async()=>{
@@ -54,9 +52,10 @@ test('an expired recording owner can be replaced and foreign sites cannot read J
   assert.equal((await w.send({op:'read'},{...sender,url:'https://example.com/'})).ok,false);assert.equal((await w.send({op:'read'},{...sender,id:'another-application'})).ok,false);
 });
 
-test('a partially completed automatic backup retries its remaining events without waiting for 100 more turns',async()=>{
-  const w=worker(['complete','interrupted','complete']),s=snapshot(99,Array.from({length:100},(_,n)=>turn(n)));s.quests.q={id:'q',name:'The mission',status:'accepted',markers:{acceptedTick:3}};
-  await w.send({op:'capture',snapshot:s});const failed=await w.idle();assert.equal(failed.backedUp.length,100);assert.match(failed.backupError,/interrupted/);
-  await w.send({op:'capture',snapshot:s});await w.idle();assert.equal(w.downloads.length,2);
-  w.clock.now+=60001;await w.send({op:'capture',snapshot:s});const completed=await w.idle();assert.equal(w.downloads.length,3);assert.equal(w.downloads[2].packet.records.length,1);assert.equal(completed.backedUp.length,101);assert.equal(completed.backupError,'');
+test('captures never automatically retry a failed legacy backup',async()=>{
+ const w=worker('interrupted');await w.send({op:'capture',snapshot:snapshot(0)});await w.send({op:'export'});assert.equal(w.downloads.length,1);w.clock.now+=60001;await w.send({op:'capture',snapshot:snapshot(100,Array.from({length:101},(_,n)=>turn(n)))});await w.idle();assert.equal(w.downloads.length,1);
+});
+
+test('a transient lower turn does not delete canon and resets rewind confirmation',async()=>{
+ const w=worker();await w.send({op:'capture',snapshot:snapshot(5)});assert.equal((await w.send({op:'capture',snapshot:snapshot(2)})).waiting,true);w.clock.now+=2000;await w.send({op:'capture',snapshot:snapshot(5)});assert.equal((await w.send({op:'capture',snapshot:snapshot(2)})).waiting,true);assert.equal((await w.send({op:'read'})).records[0].tick,5);
 });

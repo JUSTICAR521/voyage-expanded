@@ -67,29 +67,24 @@
     const ui=dialogState;if(!ui)return;if(ui.loading||ui.editing){ui.reloadRequested=true;return;}
     ui.loading=true;ui.more.disabled=true;
     try {
-      const result=await request('query',{options:{search:ui.search.value,category:ui.filter.value,history:ui.history.checked,cursor:append?ui.next||0:0}},ui.identity);
+      const result=await request('query',{options:{search:ui.search.value,category:ui.filter.value,cursor:append?ui.next||0:0}},ui.identity);
       if(dialogState!==ui||ui.editing){ui.reloadRequested=true;return;}
       if(!append)ui.pages.replaceChildren();
       for(const card of result.cards)ui.pages.append(page(card,ui));
       if(!ui.pages.childElementCount)ui.pages.append(el('p','empty','No entries match. Your full turns will appear here as they are archived.'));
       ui.next=result.next;ui.more.hidden=result.next===null;
       const meta=result.meta;
-      ui.count.textContent=`${meta.turns} full turns archived · ${meta.records} permanent records`;
-      ui.auto.checked=meta.autoExport;
-      const messages=['Original turns remain here after Voyage summarizes its history. Personal entries are saved separately.'];
+      ui.count.textContent=`${meta.turns} full turns archived · ${meta.records} records`;
+      const messages=['The Journal retains the current canon, including full turns Voyage has summarized. Revisions replace older versions; rewinding removes later turns and their entries. Backups are available in Settings.'];
       if(meta.missing)messages.push(`${meta.missing} earlier or intervening turn numbers have not been captured. The Journal cannot reconstruct discarded original text.`);
-      if(meta.backupError)messages.push(`Backup needs attention: ${meta.backupError}`);
-      else if(meta.lastBackup)messages.push(`Last completed backup: ${new Date(meta.lastBackup.at).toLocaleString()}.`);
-      else messages.push('Automatic backups download every 100 newly archived turns.');
-      ui.notice.textContent=messages.join(' ');ui.notice.classList.toggle('error',!!meta.backupError);
+      ui.notice.textContent=messages.join(' ');ui.notice.classList.remove('error');
     } catch(error){ui.notice.textContent=error.message;ui.notice.classList.add('error');}
     finally {ui.loading=false;ui.more.disabled=false;if(ui.reloadRequested&&!ui.editing&&dialogState===ui){ui.reloadRequested=false;load(false);}}
   }
   function page(card,ui) {
-    const {record,note,events,previousVersion}=card,native=record.data.native,article=el('article','page');
+    const {record,note,events}=card,native=record.data.native,article=el('article','page');
     article.append(el('h2','',`${record.clock?J.clockLabel(record.clock)+' · ':''}Turn ${record.tick}`));
     if(!record.clock)article.append(el('div','muted','Day and time were not recorded for this original turn.'));
-    if(previousVersion)article.append(el('div','history-label','Earlier version — retained after a rewind or revision'));
     if(note?.data.text)article.append(el('div','note',note.data.text));
     const edit=button(note?.data.text?'Edit my entry':'Write a journal entry',()=>{
       if(ui.editing){ui.notice.textContent='Save or cancel the open entry first.';return;}
@@ -122,15 +117,13 @@
     const editClock=button('Day & Time',()=>{if(close())clockController.open();}),dismiss=button('×',()=>close(),'close');dismiss.setAttribute('aria-label','Close Journal');header.append(heading,editClock,dismiss);
     const toolbar=el('div','toolbar'),search=el('input');search.type='search';search.placeholder='Search your journal…';search.setAttribute('aria-label','Search journal');
     const filter=el('select');filter.setAttribute('aria-label','Journal category');for(const [value,label] of [['all','All entries'],['notes','My entries'],['inventory','Inventory'],['events','Major events'],['quests','Quests'],['time','Day & Time']]){const option=el('option','',label);option.value=value;filter.append(option);}
-    const historyLabel=el('label'),history=el('input');history.type='checkbox';historyLabel.append(history,document.createTextNode('Earlier versions'));toolbar.append(search,filter,historyLabel);
+    toolbar.append(search,filter);
     const body=el('div','body'),notice=el('div','notice'),pages=el('div'),more=button('Load older entries',()=>load(true));body.append(notice,pages,more);
     const footer=el('footer'),recording=el('div','recording'),takeOver=button('Record in this tab',()=>capture({immediate:true,takeOver:true}));
-    const autoLabel=el('label'),auto=el('input');auto.type='checkbox';autoLabel.append(auto,document.createTextNode('Back up every 100 turns'));
-    footer.append(recording,takeOver,autoLabel);dialog.append(header,toolbar,body,footer);root.append(style,dialog);document.body.append(host);
-    const ui=dialogState={host,dialog,identity:J.clone(identity),search,filter,history,pages,notice,count,more,auto,recording,takeOver,editing:false,loading:false,next:null};
+    footer.append(recording,takeOver);dialog.append(header,toolbar,body,footer);root.append(style,dialog);document.body.append(host);
+    const ui=dialogState={host,dialog,identity:J.clone(identity),search,filter,pages,notice,count,more,recording,takeOver,editing:false,loading:false,next:null};
     let searchTimer;search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{if(!ui.editing)load(false);},250);});
-    for(const input of [filter,history])input.addEventListener('change',()=>{if(!ui.editing)load(false);});
-    auto.addEventListener('change',async()=>{try{await request('configure',{enabled:auto.checked},ui.identity);}catch(error){auto.checked=!auto.checked;notice.textContent=error.message;}});
+    filter.addEventListener('change',()=>{if(!ui.editing)load(false);});
     dialog.addEventListener('cancel',event=>{event.preventDefault();close();});for(const type of ['keydown','keyup','keypress'])dialog.addEventListener(type,event=>event.stopPropagation());
     dialog.showModal();updateStatus();await load(false);
   }

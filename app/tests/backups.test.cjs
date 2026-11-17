@@ -19,6 +19,21 @@ async function fixture(t){
  const backups=createBackups(host,path.join(directory,'exports','Voyage Expanded'));
  return {directory,host,backups,send};
 }
+
+test('startup and combined backup imports prune legacy revisions and rewound contents atomically',async t=>{
+ const {directory,host,backups}=await fixture(t),J=host.journal;
+ const values=structuredClone(host.storage.values),metaKey=Object.keys(values).find(key=>key.startsWith('voyage-journal:')&&!key.includes(':record:')),meta=values[metaKey];
+ const canonical=values[J.recordKey(meta.identity,meta.turns[1].id)],old=structuredClone(canonical);old.id='discarded-revision';old.data.native.storyMessage='Discarded revision text';
+ const future=structuredClone(canonical);future.id='discarded-future';future.tick=5;future.data.native.tick=5;future.data.native.storyMessage='Discarded future text';
+ for(const record of [old,future]){values[J.recordKey(meta.identity,record.id)]=record;meta.refs.push({id:record.id,kind:record.kind,tick:record.tick,recordedAt:record.recordedAt,entryId:null,hash:await J.digest(record)});}
+ delete meta.canonVersion;meta.autoExport=true;
+ const legacy={format:'voyage-expanded-backup',version:1,values};await validate(legacy,host);
+ const filename=path.join(directory,'legacy.json');await fs.writeFile(filename,JSON.stringify(legacy));
+ const before=await fs.readFile(host.storage.filename,'utf8'),preview=await backups.preview(filename);assert.equal(preview.summary.entries,2);assert.equal(await fs.readFile(host.storage.filename,'utf8'),before);
+ await backups.restore(preview.token);assert.doesNotMatch(JSON.stringify(host.storage.values),/Discarded revision text|Discarded future text/);assert.equal(host.storage.values[metaKey].autoExport,false);
+ await fs.writeFile(host.storage.filename,JSON.stringify({version:1,values}));const reopened=await createHost({dataDir:directory,backupDir:path.join(directory,'exports')});
+ assert.doesNotMatch(await fs.readFile(reopened.storage.filename,'utf8'),/Discarded revision text|Discarded future text/);assert.equal(reopened.storage.values[metaKey].refs.length,2);
+});
 test('combined backups round-trip Inventory, Journal, notes and preferences with a recovery copy',async t=>{
  const {directory,host,backups,send}=await fixture(t);
  const other=structuredClone(Object.values(host.storage.values).find(value=>value?.vault));other.vault.identity.saveId='90002';

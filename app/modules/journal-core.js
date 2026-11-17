@@ -1,4 +1,4 @@
-// Journal records are an append-only archive, independent of Voyage's rolling history.
+// Journal records retain current canon, independent of Voyage's rolling summaries.
 (() => {
   'use strict';
   const clone = value => JSON.parse(JSON.stringify(value));

@@ -23,7 +23,7 @@
     .top{padding:16px 24px 20px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid var(--vs-border)}
     .toolbar-row{display:flex;align-items:center;gap:8px}.toolbar-row>.close{margin-inline-start:auto}.character-choice{width:100%;min-width:0}
     .toolbar-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto;min-width:0;max-width:100%}.toolbar-actions>button{min-width:0;white-space:nowrap}
-    .search-actions{display:flex;align-items:center}.search-actions>.search-field{flex:1;min-width:0}
+    .search-actions{display:flex;align-items:center;gap:12px}.search-actions>.search-field{flex:1;min-width:0}
     .inventory-filters{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}.inventory-filters::-webkit-scrollbar{display:none}.inventory-filters>button{flex:none;padding-inline:12px}.inventory-filters>button[aria-pressed=true]{border-color:var(--color-voyage-btn-outlined-border,#646362);background:var(--color-voyage-surface-card,#111417);color:var(--vs-text)}
     .root-label{min-width:0;overflow-wrap:anywhere}.root-suffix{font-weight:400;font-size:11px;color:var(--vs-muted)}
     .columns .carried-tree{margin-top:0}
@@ -845,9 +845,6 @@
       if (!panel) return;
       closeItemMenu(false);
       content.replaceChildren(); controls.replaceChildren();
-      const toolbarRow = el('div', 'toolbar-row'), toolbarActions = el('div', 'toolbar-actions');
-      const refreshButton = button('Refresh', () => guarded(refresh), 'refresh-control'); refreshButton.disabled = busy||hasChanges();
-      if(hasChanges())refreshButton.title='Apply or discard your changes before refreshing';
       let fallbackCharacter=null;
       if (snapshot && !automaticCharacter) {
         characterSelect = el('select','character-choice'); characterSelect.setAttribute('aria-label', 'Player character');
@@ -857,7 +854,6 @@
         characterSelect.addEventListener('change', event => { const value = event.target.value; guarded(async () => { selected = value; await refresh(); }); });
         fallbackCharacter=characterSelect;
       }
-      toolbarActions.append(refreshButton);
       const filter = search?.value || '';
       search = el('input', 'search'); search.type = 'search'; search.placeholder = 'Search Possessions'; search.setAttribute('aria-label', 'Search stored and carried items'); search.value = filter;
       search.addEventListener('input', () => renderLists()); const searchField = el('div', 'search-field');
@@ -867,9 +863,8 @@
       const searchHandle = document.createElementNS('http://www.w3.org/2000/svg', 'path'); searchHandle.setAttribute('d', 'M16 16l5 5');
       searchIcon.append(searchLens, searchHandle); searchField.append(search, searchIcon);
       const x = button('', close, 'close'); x.append(crossIcon()); x.setAttribute('aria-label', 'Close inventory'); x.disabled = busy;
-      toolbarRow.append(toolbarActions,x);
-      const searchActions = el('div', 'search-actions'); searchActions.append(searchField);
-      controls.append(toolbarRow, searchActions);
+      const searchActions = el('div', 'search-actions'); searchActions.append(searchField,x);
+      controls.append(searchActions);
       if(fallbackCharacter)controls.insertBefore(fallbackCharacter,searchActions);
       const filterBar=el('div','inventory-filters');filterBar.setAttribute('role','group');filterBar.setAttribute('aria-label','Filter possessions');
       const items=[...Object.values(snapshot?.characters?.[selected]?.inventory||{}),...(record?.vault.items||[]).map(entry=>entry.item)];
@@ -888,7 +883,7 @@
       for(const tree of storedTrees.values())tree.cleanup();storedTrees.clear();
       content.replaceChildren();
       if (!snapshot || !record) {
-        content.append(el('div', 'empty', busy ? 'Reading your character inventory…' : snapshot ? 'Choose a character to see their possessions.' : 'Open a Voyage save, then refresh to load its inventory.'));
+        content.append(el('div', 'empty', busy ? 'Reading your character inventory…' : snapshot ? 'Choose a character to see their possessions.' : 'Open a Voyage save, then reopen Inventory to load its contents.'));
         return;
       }
       if(record.draftApply){

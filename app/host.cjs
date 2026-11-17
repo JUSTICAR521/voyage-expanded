@@ -42,14 +42,16 @@ class DiskStore {
     if (!list.length || list.some(key => !validKey(key))) throw Error('Unsupported storage key.');
     return structuredClone(Object.fromEntries(list.filter(key => Object.hasOwn(this.values, key)).map(key => [key, this.values[key]])));
   }
-  set(values) {
+  set(values, removeKeys = []) {
     const work = this.chain.then(async () => {
       if (!this.values || !values || Array.isArray(values) || Object.entries(values).some(([key, value]) => !validKey(key) || value === undefined)) throw Error('Invalid desktop storage write.');
+      if (!Array.isArray(removeKeys) || removeKeys.some(key => typeof key !== 'string' || !key.startsWith('voyage-journal:v1:') || !key.includes(':record:') || Object.hasOwn(values,key))) throw Error('Invalid Journal removal.');
       const next = { ...this.values, ...structuredClone(values) };
+      for (const key of removeKeys) delete next[key];
       const text = JSON.stringify({ version: 1, values: next });
       if (Buffer.byteLength(text) > MAX_BYTES) throw Error('Desktop inventory data is too large.');
       await atomicWrite(this.filename, text);
-      const changes = Object.fromEntries(Object.entries(values).map(([key]) => [key, { oldValue: this.values[key], newValue: next[key] }]));
+      const changes = Object.fromEntries([...Object.keys(values),...removeKeys].map(key => [key, { oldValue: this.values[key], newValue: next[key] }]));
       this.values = next;
       this.onChanged.emit(structuredClone(changes), 'local');
     });
@@ -116,6 +118,18 @@ async function createHost({ dataDir, backupDir }) {
     VoyageStorageCore: core, VoyageAppServices, navigator, console, setTimeout, clearTimeout
   });
   vm.runInContext(workerSources.join('\n;\n'), workerContext, { filename: 'inventory-worker.js' });
+  async function canonicalize(values) {
+    const copy = structuredClone(values);
+    const local = {get:async keys=>Object.fromEntries((Array.isArray(keys)?keys:[keys]).filter(key=>Object.hasOwn(copy,key)).map(key=>[key,structuredClone(copy[key])])),set:async(patch,removed=[])=>{Object.assign(copy,structuredClone(patch));for(const key of removed)delete copy[key];}};
+    const store = workerContext.VoyageJournalStore.create(local);
+    for (const [key,value] of Object.entries(copy)) if (key.startsWith('voyage-journal:v1:') && key===workerContext.VoyageJournalCore.key(value.identity)) await store.normalize(value.identity);
+    return copy;
+  }
+  const canonical = await canonicalize(storage.values);
+  if (JSON.stringify(canonical)!==JSON.stringify(storage.values)) {
+    const removed = Object.keys(storage.values).filter(key=>!Object.hasOwn(canonical,key));
+    await storage.set(canonical,removed);
+  }
   const sender = { id: VoyageAppServices.runtime.id, tab: { id: 1 }, url: 'https://voyage.io/play' };
   // The Electron entry point checks actual origin/frame before reaching here.
   function connect(emit, disconnected) {
@@ -129,7 +143,7 @@ async function createHost({ dataDir, backupDir }) {
     return { send(message) { available(); if (closed) throw Error('Inventory connection closed.'); port.onMessage.emit(structuredClone(message)); }, close: () => port.disconnect() };
   }
   return {
-    storage, core, connect, journal: workerContext.VoyageJournalCore,
+    storage, core, connect, canonicalize, journal: workerContext.VoyageJournalCore,
     async maintenance(work) {
       available();
       if (held.size) throw Error('Finish the active Inventory operation before restoring a backup.');

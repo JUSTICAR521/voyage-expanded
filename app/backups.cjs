@@ -24,6 +24,7 @@ async function validate(packet, host) {
     if (!key.startsWith('voyage-journal:v1:') || !object(value)) throw Error('Unsupported data in the backup.');
     if (key === J.recordKey(value.identity, value.id)) { J.validateRecord(value,value.identity); continue; }
     if (key !== J.key(value.identity) || value.version !== 1 || !Array.isArray(value.refs) || !object(value.turns) || !object(value.notes) || !Array.isArray(value.questMarkers) || !Array.isArray(value.backedUp) || typeof value.autoExport !== 'boolean') throw Error('Invalid Journal index.');
+    if (value.rewindFences!==undefined && (!Array.isArray(value.rewindFences) || value.rewindFences.some(fence=>!object(fence)||!Number.isSafeInteger(fence.tick)||fence.tick<0||!Number.isFinite(fence.recordedAt)))) throw Error('Invalid Journal rewind boundary.');
     const ids = new Map();
     for (const ref of value.refs) {
       if (!object(ref) || ids.has(ref.id)) throw Error('Invalid or duplicate Journal reference.');
@@ -66,6 +67,8 @@ function createBackups(host, directory) {
       if (stat.size > MAX_BYTES * 2) throw Error('This backup file is too large.');
       const data = JSON.parse(await fs.readFile(filename,'utf8'));
       if (['voyage-storage-backup','voyage-journal-backup'].includes(data?.format)) return {kind:'legacy',packet:data};
+      await validate(data,host);
+      data.values = await host.canonicalize(data.values);
       const summary = await validate(data,host);
       await host.flush();
       const token = randomUUID();
