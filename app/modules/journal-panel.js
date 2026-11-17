@@ -56,12 +56,22 @@
     }
     updateStatus();
   }
-  const styles=`:host{all:initial;font:14px/1.55 var(--font-voyage,system-ui,sans-serif);color:#d6d5d0;color-scheme:dark}*{box-sizing:border-box}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid #ffffff24;border-radius:999px;padding:8px 14px;color:inherit;background:transparent}button:hover{background:#ffffff0c}button:disabled{opacity:.45;cursor:default}button.primary{background:#2fb6ff;color:#07151c;border-color:transparent}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid #2fb6ff;outline-offset:3px}[hidden]{display:none!important}
-    dialog{width:min(1020px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:0;margin:auto;border:1px solid #ffffff24;border-radius:18px;background:#15191c;color:inherit;box-shadow:0 24px 80px #0009;overflow:hidden}dialog::backdrop{background:#000a}header{display:flex;gap:16px;align-items:center;padding:20px 24px;border-bottom:1px solid #ffffff16}h1{font-size:25px;font-weight:600;color:#faf8f2;margin:0}header .heading{flex:1}.subtitle,.muted{color:#929797;font-size:12px}.close{width:36px;height:36px;padding:0;font-size:22px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:14px 24px;border-bottom:1px solid #ffffff16}input[type=search]{flex:1;min-width:180px}input,select,textarea{background:#22282c;color:#e8e8e1;border:1px solid #ffffff20;border-radius:12px;padding:10px 12px}label{display:inline-flex;align-items:center;gap:7px;font-size:12px}.body{overflow:auto;max-height:calc(100dvh - 280px);min-height:220px;padding:22px 28px}.notice{padding:12px 16px;background:#ffffff05;border:1px solid #ffffff12;border-radius:12px;color:#aeb6b8;font-size:12px;margin:0 0 20px}.error{color:#ffb5a5}.page{padding:0 0 24px;margin:0 0 24px;border-bottom:1px solid #ffffff16}.page h2{font-size:17px;font-weight:600;color:#e7d7b0;margin:0 0 12px}.note{font:18px/1.7 Georgia,serif;white-space:pre-wrap;color:#eee6d5;margin:14px 0}.entry-editor{display:grid;gap:10px;margin:14px 0}textarea{display:block;width:100%;min-height:140px;resize:vertical;font:17px/1.65 Georgia,serif}.actions{display:flex;gap:8px;align-items:center}.tag{display:inline-block;border:1px solid #ffffff20;border-radius:999px;font-size:11px;color:#a8c5cc;padding:2px 9px;margin:0 6px 8px 0}.events{display:grid;gap:7px;margin:12px 0;padding-left:20px;font-size:13px}.events .muted{display:block}details{border:1px solid #ffffff14;border-radius:12px;padding:12px 14px;margin-top:14px}summary{cursor:pointer;color:#a7bdc5}.original{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.7 var(--font-voyage,system-ui,sans-serif);color:#c5cccd;margin:16px 0}.input{padding:10px 12px;border-left:2px solid #405e6a;background:#ffffff04;white-space:pre-wrap;margin-top:12px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.5 monospace}footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 24px;border-top:1px solid #ffffff16}.recording{flex:1;min-width:160px;font-size:12px;color:#9eb7aa}.empty{text-align:center;padding:30px;color:#a4aeae}.busy{opacity:.7}.history-label{color:#f0ba80;font-size:12px;margin-bottom:10px}@media(max-width:600px){header{padding:15px}.toolbar,footer{padding:12px}.body{padding:18px;max-height:calc(100dvh - 330px)}header button{font-size:12px;padding:7px 10px}h1{font-size:22px}.note{font-size:17px}}`;
+  const UI=globalThis.VoyageStoragePanel.ui;
+  const styles=`${UI.controlStyles}${UI.sharedStyles}
+    [hidden]{display:none!important}textarea{font:inherit}textarea:focus-visible,summary:focus-visible{outline:2px solid var(--vs-accent);outline-offset:2px}
+    dialog{width:min(1020px,calc(100vw - 48px));max-height:calc(100dvh - 48px);padding:0;margin:auto;border:1px solid var(--color-voyage-modal-border-subtle,#383838);border-radius:16px;background:var(--vs-panel);color:inherit;box-shadow:0 24px 80px #0008;overflow:hidden}dialog[open]{display:flex;flex-direction:column}dialog::backdrop{background:#0009}
+    header{display:flex;gap:16px;align-items:center;padding:20px 24px;border-bottom:1px solid var(--vs-border);flex:none}h1{font-size:24px;font-weight:600;line-height:32px;color:var(--vs-text);margin:0}header .heading{flex:1}.subtitle,.muted{color:var(--vs-muted);font-size:12px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:14px 24px;border-bottom:1px solid var(--vs-border);flex:none;z-index:1}.toolbar>.search-field{flex:1;min-width:180px}.toolbar>.destination-picker{flex:0 0 160px}
+    .body{overflow:auto;min-height:0;flex:1;padding:24px}.notice{padding:12px 16px;background:var(--color-voyage-panel-card-bg,#111417);border:1px solid var(--vs-border);border-radius:12px;color:var(--vs-muted);font-size:12px;margin:0 0 20px}.error{color:var(--color-voyage-studio-error-text,#ff7865)}.page{padding:0 0 24px;margin:0 0 24px;border-bottom:1px solid var(--vs-border)}.page h2{font-size:17px;font-weight:600;color:var(--vs-text);margin:0 0 12px}.note{font:18px/1.7 Georgia,serif;white-space:pre-wrap;color:var(--vs-text);margin:14px 0}.entry-editor{display:grid;gap:10px;margin:14px 0}
+    textarea{display:block;width:100%;min-height:140px;resize:vertical;font:17px/1.65 Georgia,serif;background:color-mix(in srgb,var(--vs-field) 50%,var(--vs-panel));color:var(--vs-text);border:1px solid var(--vs-border);border-radius:12px;padding:10px 12px}.actions{display:flex;gap:8px;align-items:center}.tag{display:inline-block;border:1px solid var(--vs-border);border-radius:999px;font-size:11px;color:var(--vs-muted);padding:2px 9px;margin:0 6px 8px 0}.events{display:grid;gap:7px;margin:12px 0;padding-left:20px;font-size:13px}.events .muted{display:block}details{border:1px solid var(--vs-border);border-radius:12px;padding:12px 14px;margin-top:14px}summary{cursor:pointer;color:inherit}.original{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.7 var(--font-voyage,system-ui,sans-serif);color:inherit;margin:16px 0}.input{padding:10px 12px;border-left:2px solid var(--vs-border);background:var(--color-voyage-panel-card-bg,#111417);white-space:pre-wrap;margin-top:12px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.5 monospace}
+    footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:none}.recording{flex:1;min-width:160px}.empty{text-align:center;padding:30px;color:var(--vs-muted)}.busy{opacity:.7}
+    @media(max-width:760px){dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}header,.toolbar,.body,.status{padding-left:20px;padding-right:20px}}@media(max-width:440px){header{gap:8px}h1{font-size:22px}.toolbar>.search-field{min-width:100%;}.toolbar>.destination-picker{flex:1}.note{font-size:17px}}
+  `;
+
   function close(force=false) {
     if(!dialogState)return true;
     if(dialogState.editing&&!force&&!confirm('Discard the unsaved journal entry?'))return false;
-    const old=dialogState;dialogState=null;old.dialog.close();old.host.remove();globalThis.VoyageExpanded?.refresh();return true;
+    const old=dialogState;dialogState=null;old.filter.closePicker();old.dialog.close();old.host.remove();globalThis.VoyageExpanded?.refresh();return true;
   }
   async function load(append=false) {
     const ui=dialogState;if(!ui)return;if(ui.loading||ui.editing){ui.reloadRequested=true;return;}
@@ -110,16 +120,19 @@
     if(!enabled||dialogState||!onPlay())return;
     await capture({immediate:true});
     if(!identity){recordingError=recordingError||'The campaign could not be identified.';updateStatus();return;}
-    const host=el('div');host.dataset.voyageJournal='';globalThis.VoyageTimeUI?.applyNativeTheme(host);
+    const host=el('div');host.dataset.voyageJournal='';UI.applyNativeTheme(host);
     const root=host.attachShadow({mode:'open'}),style=el('style');style.textContent=styles;
     const dialog=el('dialog');dialog.setAttribute('aria-label','Journal');
     const header=el('header'),heading=el('div','heading'),count=el('div','subtitle','Loading archived turns…');heading.append(el('h1','','Journal'),count);
-    const editClock=button('Day & Time',()=>{if(close())clockController.open();}),dismiss=button('×',()=>close(),'close');dismiss.setAttribute('aria-label','Close Journal');header.append(heading,editClock,dismiss);
-    const toolbar=el('div','toolbar'),search=el('input');search.type='search';search.placeholder='Search your journal…';search.setAttribute('aria-label','Search journal');
-    const filter=el('select');filter.setAttribute('aria-label','Journal category');for(const [value,label] of [['all','All entries'],['notes','My entries'],['inventory','Inventory'],['events','Major events'],['quests','Quests'],['time','Day & Time']]){const option=el('option','',label);option.value=value;filter.append(option);}
-    toolbar.append(search,filter);
-    const body=el('div','body'),notice=el('div','notice'),pages=el('div'),more=button('Load older entries',()=>load(true));body.append(notice,pages,more);
-    const footer=el('footer'),recording=el('div','recording'),takeOver=button('Record in this tab',()=>capture({immediate:true,takeOver:true}));
+    const editClock=button('Day & Time',()=>{if(close())clockController.open();}),dismiss=button('',()=>close(),'close');dismiss.append(UI.crossIcon());dismiss.setAttribute('aria-label','Close Journal');header.append(heading,editClock,dismiss);
+    const toolbar=el('div','toolbar'),search=el('input','search');search.type='search';search.placeholder='Search your journal…';search.setAttribute('aria-label','Search journal');
+    const searchField=el('div','search-field');
+    const searchIcon=document.createElementNS('http://www.w3.org/2000/svg','svg');searchIcon.setAttribute('class','search-icon');searchIcon.setAttribute('viewBox','0 0 24 24');searchIcon.setAttribute('aria-hidden','true');searchIcon.setAttribute('focusable','false');
+    const lens=document.createElementNS('http://www.w3.org/2000/svg','circle');lens.setAttribute('cx','10.5');lens.setAttribute('cy','10.5');lens.setAttribute('r','7.5');const handle=document.createElementNS('http://www.w3.org/2000/svg','path');handle.setAttribute('d','M16 16l5 5');searchIcon.append(lens,handle);searchField.append(search,searchIcon);
+    const filter=UI.createPicker([['all','All entries'],['notes','My entries'],['inventory','Inventory'],['events','Major events'],['quests','Quests'],['time','Day & Time']].map(([value,label])=>({value,label})),{label:'Journal category',value:'all',clearable:false});
+    toolbar.append(searchField,filter);
+    const body=el('div','body scroll-pane'),notice=el('div','notice'),pages=el('div'),more=button('Load older entries',()=>load(true));body.append(notice,pages,more);
+    const footer=el('footer','status'),recording=el('div','recording'),takeOver=button('Record in this tab',()=>capture({immediate:true,takeOver:true}));
     footer.append(recording,takeOver);dialog.append(header,toolbar,body,footer);root.append(style,dialog);document.body.append(host);
     const ui=dialogState={host,dialog,identity:J.clone(identity),search,filter,pages,notice,count,more,recording,takeOver,editing:false,loading:false,next:null};
     let searchTimer;search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{if(!ui.editing)load(false);},250);});
@@ -127,7 +140,7 @@
     dialog.addEventListener('cancel',event=>{event.preventDefault();close();});for(const type of ['keydown','keyup','keypress'])dialog.addEventListener(type,event=>event.stopPropagation());
     dialog.showModal();updateStatus();await load(false);
   }
-  const escape=event=>{if(dialogState&&event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();close();}};
+  const escape=event=>{if(dialogState&&event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();if(dialogState.filter.control.getAttribute('aria-expanded')==='true')dialogState.filter.closePicker();else close();}};
   const changed=()=>{if(enabled)capture({immediate:true});};
   const visibility=()=>{if(!document.hidden)capture();};
   function attachClock(controller) {

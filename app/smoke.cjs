@@ -37,6 +37,9 @@ async function run({ win, host, demo, prepareNavigation }) {
   await until(() => page(`${root}.textContent.includes('Iron Shortsword')`), 'rendered inventory');
   assert.equal(await page(`[...${root}.querySelectorAll('button')].some(button=>button.textContent==='Refresh')`),false);
   assert.equal(await page(`(()=>{const r=${root},search=r.querySelector('.search').getBoundingClientRect(),close=r.querySelector('.close').getBoundingClientRect();return Math.abs(search.top+search.height/2-close.top-close.height/2)<1&&close.left>search.right})()`),true,'Inventory close button shares the search row.');
+  const inventoryAppearance=await page(`(()=>{const r=${root},read=(selector,props)=>{const s=getComputedStyle(r.querySelector(selector));return Object.fromEntries(props.map(p=>[p,s[p]]))},columns=r.querySelector('.columns'),panes=[...columns.children].map(n=>n.getBoundingClientRect()),bounds=r.querySelector('.window').getBoundingClientRect();return {widths:panes.map(p=>p.width),center:(panes[0].right+panes[1].left)/2-window.innerWidth/2,panel:read('.window',['backgroundColor','borderColor']),footer:read('.status',['padding','minHeight','fontSize','lineHeight','color','borderTopColor']),search:read('.search',['height','borderRadius','fontSize','backgroundColor','color','padding']),scroll:read('.main',['scrollbarWidth','scrollbarColor']),pill:read('.inventory-filters button',['height','borderRadius','fontSize','fontWeight'])}})()`);
+  assert.ok(Math.abs(inventoryAppearance.widths[0]-inventoryAppearance.widths[1])<1,'Inventory panes have equal usable widths.');
+  assert.ok(Math.abs(inventoryAppearance.center)<1,'Inventory divider is at the window midpoint.');
   console.log('SMOKE: isolated preload; no extension; existing inventory rendered.');
   const action = async (uuid, label) => {
     await page(`${root}.querySelector('[data-uuid="${uuid}"] [data-item-menu-key]').click()`);
@@ -97,6 +100,8 @@ async function run({ win, host, demo, prepareNavigation }) {
   const journalRoot = `document.querySelector('[data-voyage-journal]').shadowRoot`;
   await until(() => page(`!!document.querySelector('[data-voyage-journal]') && ${journalRoot}.textContent.includes('The synthetic adventurer arrives at the inn.')`), 'desktop Journal archive');
   assert.equal(await page(`${journalRoot}.querySelectorAll('input[type="checkbox"]').length`),0,'Journal history and automatic backup checkboxes are removed.');
+  const journalAppearance=await page(`(()=>{const r=${journalRoot},read=(selector,props)=>{const s=getComputedStyle(r.querySelector(selector));return Object.fromEntries(props.map(p=>[p,s[p]]))};return {panel:read('dialog',['backgroundColor','borderColor']),footer:read('footer',['padding','minHeight','fontSize','lineHeight','color','borderTopColor']),search:read('.search',['height','borderRadius','fontSize','backgroundColor','color','padding']),scroll:read('.body',['scrollbarWidth','scrollbarColor']),pill:read('.destination-select',['height','borderRadius','fontSize','fontWeight'])}})()`);
+  for(const part of ['panel','footer','search','scroll','pill'])assert.deepEqual(journalAppearance[part],inventoryAppearance[part],`Journal ${part} matches Inventory.`);
   const identity = {saveId:'90001',partyId:'example-party'};
   const query = await host.backup({type:'voyage-journal',op:'query',identity});
   assert.equal(query.ok,true); assert.equal(query.cards.length,1);
