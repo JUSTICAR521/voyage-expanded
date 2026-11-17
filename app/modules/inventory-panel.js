@@ -37,6 +37,8 @@
     .inventory-filters{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}.inventory-filters::-webkit-scrollbar{display:none}.inventory-filters>button{flex:none;padding-inline:12px}.inventory-filters>button[aria-pressed=true]{border-color:var(--color-voyage-btn-outlined-border,#646362);background:var(--color-voyage-surface-card,#111417);color:var(--vs-text)}
     .root-label{min-width:0;overflow-wrap:anywhere}.root-suffix{font-weight:400;font-size:11px;color:var(--vs-muted)}
     .columns .carried-tree{margin-top:0}
+    .columns .carried-organizer,.columns .stored-destination{width:100%;min-width:0}
+    .columns .carried-tree,.columns .tree-loose,.columns .tree-children{width:100%;grid-template-columns:minmax(0,1fr)}
     @media(max-width:420px){.toolbar-actions{gap:6px;flex:1}.toolbar-actions>button{flex:1 1 auto;padding-inline:8px}}
     .main{padding:24px;min-height:0;overflow:auto;flex:1;}.columns{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:48px}.columns::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--vs-border);transform:translateX(-50%);pointer-events:none}.columns>section{min-width:0}
     .card{padding:18px 0;border-bottom:1px solid var(--vs-border);margin:0;background:transparent}

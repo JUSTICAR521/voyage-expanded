@@ -2,7 +2,7 @@
 
 An independent community desktop application for **Voyage**, built with Electron. Inventory, Journal, and the responsive game interface run directly in the application. Electron is the sole development and release target; a browser extension is not required.
 
-**0.2.0-preview.5 · Windows x64 · MIT licensed**
+**0.2.0-preview.6 · Windows x64 · MIT licensed**
 
 This is an unsigned portable preview without an installer or automatic updates. Live play requires Voyage's online service and normal account and State Editor permissions. The application does not provide an offline game engine.
 

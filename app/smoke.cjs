@@ -63,6 +63,9 @@ async function run({ win, host, demo, prepareNavigation }) {
   assert.equal((await savedGame()).characters['Example Adventurer'].inventory.swordB, undefined);
   console.log('SMOKE: Cancel retained the draft; Apply equipped a sword and deposited another through the native-state bridge.');
   await isolated('VoyageDesktopInventory.open()');
+  const itemWidths=await page(`(()=>{const r=${root};return [...r.querySelectorAll('.columns>section')].map(section=>{const list=section.querySelector('.carried-group>.tree-loose'),row=list.querySelector('.tree-row'),style=getComputedStyle(list);return {available:list.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight),item:row.getBoundingClientRect().width}})})()`);
+  assert.ok(Math.abs(itemWidths[0].available-itemWidths[1].available)<1,'Both columns reserve equal width for items.');
+  assert.ok(Math.abs(itemWidths[0].item-itemWidths[1].item)<1,'Carried and stored item cards have equal widths.');
   // Rename through the actual draft UI, then Apply before reloading so the
   // test stays synchronized with the panel's draft and navigation lifecycle.
   await page(`${root}.querySelector('[data-uuid="swordB"] [data-item-menu-key]').click()`);
@@ -100,6 +103,9 @@ async function run({ win, host, demo, prepareNavigation }) {
   const journalRoot = `document.querySelector('[data-voyage-journal]').shadowRoot`;
   await until(() => page(`!!document.querySelector('[data-voyage-journal]') && ${journalRoot}.textContent.includes('The synthetic adventurer arrives at the inn.')`), 'desktop Journal archive');
   assert.equal(await page(`${journalRoot}.querySelectorAll('input[type="checkbox"]').length`),0,'Journal history and automatic backup checkboxes are removed.');
+  assert.equal(await page(`${journalRoot}.querySelector('header').textContent.includes('records')`),false,'Journal title has no record counts.');
+  assert.equal(await page(`${journalRoot}.querySelector('.notice').hidden`),true,'Journal has no introductory description.');
+  assert.equal(await page(`${journalRoot}.querySelectorAll('details details,pre').length`),0,'Journal entries have no raw JSON section.');
   const journalAppearance=await page(`(()=>{const r=${journalRoot},read=(selector,props)=>{const s=getComputedStyle(r.querySelector(selector));return Object.fromEntries(props.map(p=>[p,s[p]]))};return {panel:read('dialog',['backgroundColor','borderColor']),footer:read('footer',['padding','minHeight','fontSize','lineHeight','color','borderTopColor']),search:read('.search',['height','borderRadius','fontSize','backgroundColor','color','padding']),scroll:read('.body',['scrollbarWidth','scrollbarColor']),pill:read('.destination-select',['height','borderRadius','fontSize','fontWeight'])}})()`);
   for(const part of ['panel','footer','search','scroll','pill'])assert.deepEqual(journalAppearance[part],inventoryAppearance[part],`Journal ${part} matches Inventory.`);
   const identity = {saveId:'90001',partyId:'example-party'};
